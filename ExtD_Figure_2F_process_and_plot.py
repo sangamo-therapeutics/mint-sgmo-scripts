@@ -1,3 +1,4 @@
+#ExtD_Figure_2F_process_and_plot.py
 #this script analyzses the results of bacterial specificity selection
 #input sequences have a 2bp region corresponding to a Bxb1 loop target in the left halfsite randomized
 #the reverse complement of this randomized region is in the right halfsite
@@ -77,8 +78,8 @@ else:
                 for pos in range(2):
                     base_pos_prob_dict[replicate][base][pos] = 0.0
             replicate += 1
-
-    loop = input_filename_list[0][15:21] #the amino acid sequence of the loop variant is found within the filename 
+    print()
+    loop_seq = input_filename_list[0][15:21] #the amino acid sequence of the loop variant is found within the filename 
 
     #dictionaries to store the data for each replicate
     base_pos_dict = {}
@@ -227,10 +228,10 @@ else:
     ww_logo.style_xticks(anchor=0, spacing=1, rotation=0)
     ww_logo.ax.set_ylabel('information (bits)')
     ww_logo.ax.set_yticks([0, 1.0, 2])
-    ww_logo.ax.text(-0.2, 2.1, '%s with %d sequences' %(loop, randomized_region_inverted_repeat), fontsize=9)
+    ww_logo.ax.text(-0.2, 2.1, '%s with %d sequences' %(loop_seq, randomized_region_inverted_repeat), fontsize=9)
     ww_logo.ax.set_xlim([- 0.5, 2 - 0.5])
     ww_logo.ax.set_ylim([0, 2])
-    plot_filename = loop +  '.pdf' 
+    plot_filename = loop_seq +  '.pdf' 
     plt.savefig(plot_filename)
 
                     
