@@ -14,6 +14,27 @@ To reproduce the DNA specificity motif for the SATALKR helix in Figure 1F, you w
 
 #### usage: python Figure_1F_process_and_plot.py oligo_NNN_library_3-6-2024.txt Figure_1F_SATALKR_fq_files.txt
 
+## Extended Data Figure 2B:
+To reproduce the Bxb1 helix selection results in Extended Data Figure 2B you will need the follwing data files:
+* ExtD_FIGURE_2B_GAC_batch2.fq (GAC)
+* ExtD_FIGURE_2B_GTC_batch1.fq (GTC)
+* ExtD_FIGURE_2B_CAG_batch4b.fq (CAG) [not uploaded to SRA yet]
+* ExtD_FIGURE_2B_AGG_batch2.fq (AGG)
+* ExtD_FIGURE_2B_AAT_batch4.fq (AAT)
+* ExtD_FIGURE_2B_CTC_batch2.fq (CTC)
+* ExtD_FIGURE_2B_CAA_batch1.fq (CAA)
+* ExtD_FIGURE_2B_CAT_batch3.fq (CAT)
+* ExtD_FIGURE_2B_CGC_batch4.fq (CGC)
+* ExtD_FIGURE_2B_ACA_batch2.fq (ACA)
+
+Generating the plots is a two step process where:
+* the first step converts the raw sequence data into a sorted list of selected helix sequences
+* the second step identifies enriched 4 residue patterns and then generates a plot from the 100 selected helix sequences that best match the enriched patterns
+
+#### usage: python helix_selection_processing.py helix_library_template.txt ExtD_FIGURE_2B_AAT_batch4.fq
+#### usage: python helix_pattern_finder_and_plot.py ExtD_FIGURE_2B_AAT_batch4_peptides_all.txt
+  
+
 ## Extended Data Figure 2D:
 To reproduce the Bxb1 hairpin selection results in Extended Data Figure 2E you will need the follwing data files:
 * ExtD_FIGURE_2D_chr1_25477444L_GCCCCTTC_batch4.fq (GCCCCTTC)
