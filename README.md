@@ -30,10 +30,9 @@ Generating the plots is a multistep process where:
 Note that some files contain multiple motifs and a separate plot is generated for each motif. 
 In Extended Data Figure 2E the plot for GCCCCTTC represents motif3, the plot for TGCCTTCC represents motif4, and the other panels represent motif1 from their respective sample
 
-#### usage: 
-python hairpin_selection_processing.py hairpin_library_template.txt ExtD_FIGURE_2D_AAVS15032L_CTGAGCGC_batch3.fq
-python hairpin_pattern_finder.py ExtD_FIGURE_2D_AAVS15032L_CTGAGCGC_batch3_peptides_all.txt
-python hairpin_pattern_sort_and_plot.py ExtD_FIGURE_2D_AAVS15032L_CTGAGCGC_batch3_peptides_all_4res_patterns.txt
+#### usage: python hairpin_selection_processing.py hairpin_library_template.txt ExtD_FIGURE_2D_AAVS15032L_CTGAGCGC_batch3.fq
+#### usage: python hairpin_pattern_finder.py ExtD_FIGURE_2D_AAVS15032L_CTGAGCGC_batch3_peptides_all.txt
+#### usage: python hairpin_pattern_sort_and_plot.py ExtD_FIGURE_2D_AAVS15032L_CTGAGCGC_batch3_peptides_all_4res_patterns.txt
 
 ## Extended Data Figure 2F:
 To reproduce the DNA specificity motif for the YRGSLP loop in Extended Data Figure 2F, you will need the following data files:
