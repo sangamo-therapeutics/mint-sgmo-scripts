@@ -14,6 +14,26 @@ To reproduce the DNA specificity motif for the SATALKR helix in Figure 1F, you w
 
 #### usage: python Figure_1F_process_and_plot.py oligo_NNN_library_3-6-2024.txt Figure_1F_SATALKR_fq_files.txt
 
+## Extended Data Figure 2D:
+To reproduce the Bxb1 hairpin selection results in Extended Data Figure 2E you will need the follwing data files:
+* ExtD_FIGURE_2D_chr1_25477444L_GCCCCTTC_batch4.fq (GCCCCTTC)
+* ExtD_FIGURE_2D_chr19_48971022L_GGGATTCC_batch3.fq (GGGATTCC)
+* ExtD_FIGURE_2D_AAVS15032L_CTGAGCGC_batch3.fq (CTGAGCGC)
+* ExtD_FIGURE_2D_AAVS15032R_GGGTTTGA_batch3.fq (GGGTTTGA)
+* ExtD_FIGURE_2D_chr19_48971022R_TGCCTTCC_batch4.fq (TGCCTTCC)
+
+Generating the plots is a multistep process where:
+* the first step converts the raw sequence data into a sorted list of selected peptide sequences
+* the second step identifies enriched 4 residue motifs for each of G, A, R, and P fixed at position 322
+* the third step clusters the enriched patterns into separate motifs and generates a plot from the selected sequences that best match each motif
+
+Note that some files contain multiple motifs and a separate plot is generated for each motif. 
+In Extended Data Figure 2E the plot for GCCCCTTC represents motif3, the plot for TGCCTTCC represents motif4, and the other panels represent motif1 from their respective sample
+
+#### usage: 
+python hairpin_selection_processing.py hairpin_library_template.txt ExtD_FIGURE_2D_AAVS15032L_CTGAGCGC_batch3.fq
+python hairpin_pattern_finder.py ExtD_FIGURE_2D_AAVS15032L_CTGAGCGC_batch3_peptides_all.txt
+python hairpin_pattern_sort_and_plot.py ExtD_FIGURE_2D_AAVS15032L_CTGAGCGC_batch3_peptides_all_4res_patterns.txt
 
 ## Extended Data Figure 2F:
 To reproduce the DNA specificity motif for the YRGSLP loop in Extended Data Figure 2F, you will need the following data files:
