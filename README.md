@@ -67,13 +67,14 @@ To reproduce the DNA specificity motif for the YRGSLP loop in Extended Data Figu
 
 ## Extended Data Figure 2G:
 To reproduce the DNA specificity motif for the FAGGG loop in Extended Data Figure 2F, you will need the following data files:
-* ExtD_FIGURE_2G_FAGGGRKHPRYR_techrep1_biorep1.fq
-* ExtD_FIGURE_2G_FAGGGRKHPRYR_techrep1_biorep2.fq
-* ExtD_FIGURE_2G_FAGGGRKHPRYR_techrep1_biorep3.fq
-* ExtD_FIGURE_2G_FAGGGRKHPRYR_techrep1_biorep4.fq
-* ExtD_FIGURE_2G_FAGGGRKHPRYR_techrep2_biorep1.fq
-* ExtD_FIGURE_2G_FAGGGRKHPRYR_techrep2_biorep2.fq
-* ExtD_FIGURE_2G_FAGGGRKHPRYR_techrep2_biorep3.fq
-* ExtD_FIGURE_2G_FAGGGRKHPRYR_techrep2_biorep4.fq
+* ExtD_FIGURE_2F_FAGGGRKHPRYR_techrep1_biorep1.fq
+* ExtD_FIGURE_2F_FAGGGRKHPRYR_techrep1_biorep2.fq
+* ExtD_FIGURE_2F_FAGGGRKHPRYR_techrep1_biorep3.fq
+* ExtD_FIGURE_2F_FAGGGRKHPRYR_techrep1_biorep4.fq
+* ExtD_FIGURE_2F_FAGGGRKHPRYR_techrep2_biorep1.fq
+* ExtD_FIGURE_2F_FAGGGRKHPRYR_techrep2_biorep2.fq
+* ExtD_FIGURE_2F_FAGGGRKHPRYR_techrep2_biorep3.fq
+* ExtD_FIGURE_2F_FAGGGRKHPRYR_techrep2_biorep4.fq
+(note that panels 2F and 2G were swapped after the initial batch of sequence reads were uploaded to the SRA)
 
 #### usage: python ExtD_Figure_2G_process_and_plot.py oligo_NNNNNN_hairpin_library.txt ExtD_FIGURE_2G_FAGGGRKHPRYR_fq_files.txt
