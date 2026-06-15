@@ -71,18 +71,16 @@ if __name__ == "__main__":
     # read input file and convert into a list of filenames for input fastq files
     template_filename = sys.argv[1]  # template sequence is oligo_NNN_library_3-6-2024.txt for this example
     print(f"---Template file is {template_filename}")
-    # template_filename = r'C:\Users\jeshleman\PycharmProjects\mint-sgmo-scripts\data\figure_files\oligo_NN_library_loop.txt'
     input_filename_list_filename = sys.argv[2]
     print(f"-----Data source file list is {input_filename_list_filename}")
-    # input_filename_list_filename = r'C:\Users\jeshleman\PycharmProjects\mint-sgmo-scripts\scripts\figure_maker_scripts\ExtD_FIGURE_2F_YRGSLP_fq_files.txt'
     try:
         data_location = sys.argv[3]
         print(f"------We will look for data in {data_location}")
     except IndexError:
         data_location = Path(input_filename_list_filename).parent
         print(f"------We will use the default data location {data_location}")
-    print(f"-----------Data location is {data_location.resolve()}")
     data_location = Path(data_location)
+    print(f"-----------Data location is {data_location.resolve()}")
     output_loc = data_location / "figure_output"
     output_loc.mkdir(exist_ok=True)
     print(f"--------------Output will be written in {output_loc.resolve()}")

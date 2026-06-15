@@ -80,34 +80,20 @@ if __name__ == "__main__":
         # read input file and convert into a list of filenames for input fastq files
     template_filename = sys.argv[1]  # template sequence is oligo_NNN_library_3-6-2024.txt for this example
     print(f"---Template file is {template_filename}")
-    # template_filename = r'C:\Users\jeshleman\PycharmProjects\mint-sgmo-scripts\data\figure_files\oligo_NN_library_loop.txt'
     input_filename_list_filename = sys.argv[2]
     print(f"-----Data source file list is {input_filename_list_filename}")
-    # input_filename_list_filename = r'C:\Users\jeshleman\PycharmProjects\mint-sgmo-scripts\scripts\figure_maker_scripts\ExtD_FIGURE_2F_YRGSLP_fq_files.txt'
     try:
         data_location = sys.argv[3]
         print(f"------We will look for data in {data_location}")
     except IndexError:
         data_location = Path(input_filename_list_filename).parent
         print(f"------We will use the default data location {data_location}")
-    print(f"-----------Data location is {data_location.resolve()}")
     data_location = Path(data_location)
+    print(f"-----------Data location is {data_location.resolve()}")
     output_loc = data_location / "figure_output"
     output_loc.mkdir(exist_ok=True)
     print(f"--------------Output will be written in {output_loc.resolve()}")
 
-    template_file = Path(template_filename)
-    randomized_length = 2
-
-    template_sequence = template_file.read_text().strip()
-
-    if not template_sequence:
-        raise ValueError(f"Template file {template_file.name} did not contain a sequence")
-    if template_sequence.find('NNNNNN') != -1:
-        randomized_length = 6
-        left_randomized_region_start = template_sequence.find('NNNNNN')
-    else:
-        raise ValueError(f"Could not locate randomized region in template.")
     ct = 0
     total = 0
     seq_length = 6
@@ -116,17 +102,16 @@ if __name__ == "__main__":
     randomized_region_inverted_repeat = 0
 
     # read expected sequence template with N at each randomized position in the library of partially randomized DNA sequences
-    template_filename = sys.argv[1]
-    template_file = open(template_filename, 'r')
-    for raw_line in template_file:
-        line = raw_line.strip()
-        if line:
-            template_sequence = line
-            if template_sequence.find('NNNNNN') != -1:
-                randomized_length = 6
-                left_randomized_region_start = template_sequence.find('NNNNNN')
-                right_randomized_region_start = template_sequence[left_randomized_region_start + 1:].find(
-                    'NNNNNN') + left_randomized_region_start + 1
+    # template_filename = sys.argv[1]
+    template_file = Path(template_filename)
+    randomized_length = 6
+    template_sequence = template_file.read_text().strip()
+    if not template_sequence:
+        raise ValueError(f"Template file {template_file.name} did not contain a sequence")
+    left_randomized_region_start = template_sequence.find('NNNNNN')
+    right_randomized_region_start = template_sequence[left_randomized_region_start + 1:].find(
+        'NNNNNN') + left_randomized_region_start + 1
+
     constant_5p = template_sequence[:left_randomized_region_start]
     left_rand = template_sequence[left_randomized_region_start:left_randomized_region_start + randomized_length]
     constant_middle = template_sequence[left_randomized_region_start + randomized_length:right_randomized_region_start]
@@ -169,7 +154,8 @@ if __name__ == "__main__":
                     seq = line[4:data_end]  # remove randomized 4 bp at start of read
                     if seq[:len(constant_5p)] == constant_5p and seq[
                                                                  left_randomized_region_start + randomized_length:right_randomized_region_start] == constant_middle and seq[
-                                                                                                                                                                        -len(constant_3p):] == constant_3p:  # only process files where constant region matches expectations
+                                                                                                                                                                        -len(
+                                                                                                                                                                            constant_3p):] == constant_3p:  # only process files where constant region matches expectations
                         constant_region_correct += 1
                         left_randomized_region = seq[
                                                  left_randomized_region_start:left_randomized_region_start + randomized_length]
