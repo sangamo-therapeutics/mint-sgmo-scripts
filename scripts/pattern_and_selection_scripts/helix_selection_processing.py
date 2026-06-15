@@ -4,8 +4,21 @@
 # output is DNA sequence of randomized region, sequence count, translated peptide, number of peptides with a single mismatch, and peptides with a single amino acid mismatch and more than one DNA mismatch
 # written by Jeff Miller for Sangamo Therapeutics
 
+
+"""This script can be invoked with the command:
+
+        $  python helix_selection_process.py /path/to/helix_library_template.txt \
+                /path/to/location/of/fq_file/ExtD_FIGURE_2C_AC_batch1b.fq
+
+    The output file\subdirectory "data_output" in the same directory as the fastq / fq file
+
+"""
+
 import math
 import sys
+from pathlib import Path
+
+from tqdm import tqdm
 
 residue_list = ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y']
 BASES = ['A', 'C', 'G', 'T']
@@ -51,7 +64,8 @@ def translate(DNA_seq):
     peptide = ''
     while 1:
         codon = DNA_seq[codon_position * 3: codon_position * 3 + 3]
-        if len(codon) < 3: break
+        if len(codon) < 3:
+            break
         peptide = peptide + genetic_code[codon]
         codon_position = codon_position + 1
     return (peptide)
@@ -104,7 +118,7 @@ def check_randomized_region(randomized_template, randomized_read):
 # counts mismatches between two non-degenerate sequences of equal length- breaks after mismatch_threshold reached and returns mismatch_threshold
 def count_mismatches(seq1, seq2, mismatch_threshold):
     mismatches = 0
-    for pos in range(len(seq1)):
+    for pos, (a, b) in enumerate(zip(seq1, seq2)):
         if seq1[pos] != seq2[pos]:
             mismatches += 1
         if mismatches >= mismatch_threshold:
@@ -112,22 +126,35 @@ def count_mismatches(seq1, seq2, mismatch_threshold):
     return mismatches
 
 
-if len(sys.argv) < 3:
-    print(
-        'please use a command line arguments with the degenerate template sequence, read count threshold, and the .fq input file name')
-else:
+if __name__ == "__main__":
+    if len(sys.argv) < 3:
+        raise ValueError('please use a command line arguments with the degenerate template '
+                         'sequence and input .fq file')
+
     # read input file and convert into a list of filenames for input fastq files
+
+    template_filename = sys.argv[1]  # template sequence is oligo_NNN_library_3-6-2024.txt for this example
+    print(f"---Template file is {template_filename}")
+    input_filename = sys.argv[2]
+    print(f"-----Data file is {input_filename}")
+    input_path = Path(input_filename)
+    data_location = Path(input_filename).parent
+    print(f"-----------Data location is {data_location.resolve()}")
+    output_loc = data_location / "data_output"
+    output_loc.mkdir(exist_ok=True)
+
     ct = 0
     total = 0
     read_count_threshold = 1  # set this higher for really noisy data
     constant_region_correct = 0
-    template_filename = sys.argv[1]
-    template_file = open(template_filename, 'r')
-    for raw_line in template_file:
-        line = raw_line.strip()
-        if line:
-            template_sequence = line
-            randomized_start, randomized_end = parse_degen_DNA_seq(template_sequence)
+    # template_filename = sys.argv[1]
+    template_file = Path(template_filename)
+    template_sequence = template_file.read_text().strip()
+
+    if not template_sequence:
+        raise ValueError(f"Template file {template_file.name} did not contain a sequence")
+    randomized_start, randomized_end = parse_degen_DNA_seq(template_sequence)
+
     constant_5p = template_sequence[:randomized_start]
     constant_3p = template_sequence[randomized_end + 1:]
     randomized_template_region = template_sequence[randomized_start:randomized_end + 1]
@@ -135,48 +162,55 @@ else:
     randomized_size = randomized_end - randomized_start + 1
     peptide_length = int(randomized_size / 3)
     peptide_offset = 1
-    input_filename = sys.argv[2]
+
     raw_mode = 1
-    if input_filename[-6:] == '_R1.fq':
+    if input_path.suffix in (".fq, 'fastq"):
         raw_mode = 1
-        truncated_filename = input_filename[:-6]
-    elif input_filename[-9:] == '_R1.fastq':
-        raw_mode = 1
-        truncated_filename = input_filename[:-9]
-    else:
-        truncated_filename = input_filename[:-3]
+    truncated_filename = input_path.name.replace("_R1", "").replace(input_path.suffix, "")
+    # if input_path.name[-6:] == '_R1.fq':
+    #     raw_mode = 1
+    #     truncated_filename = input_filename[:-6]
+    # elif input_filename[-9:] == '_R1.fastq':
+    #     raw_mode = 1
+    #     truncated_filename = input_filename[:-9]
+    # else:
+    #     truncated_filename = input_filename[:-3]
     ##    if raw_mode == 1:
     ##        print('raw mode- will trim first 4 bp')
 
     output_all_filename = truncated_filename + '_peptides_all.txt'  # revmoes _R1.fq
-    input_file = open(input_filename, 'r')
-    output_all_file = open(output_all_filename, 'w')
+    output_all_filepath = output_loc / output_all_filename
+    # input_file = open(input_filename, 'r')
+
+    # output_all_file = open(output_all_filepath, 'w')
     randomized_region_dict = {}  # dictionary of each unique expected DNA sequence read and number of times that read was observed
     data_end = len(template_sequence) + 4
 
     # this loop reads in the fastq or fq file. Raw mode means 4 bp randomer needs to be removed
-    for raw_line in input_file:
-        line = raw_line.strip()
-        if line:
-            ct += 1
-            if ct % 4 == 1:  # fastq files has four lines for each sequence read- first line is name of sequence read
-                seq_name = line
-            if ct % 4 == 2:  # second line is actual sequence read (basecalls)
-                total += 1
-                if raw_mode == 1:
-                    seq = line[4:data_end]
-                else:
-                    seq = line
-                if seq[:len(constant_5p)] == constant_5p and seq[
-                                                             -len(constant_3p):] == constant_3p:  # only process files where constant region matches expectations
-                    randomized_region = seq[len(constant_5p):len(constant_5p) + randomized_size]
-                    if check_randomized_region(randomized_template_region,
-                                               randomized_region) == 1:  # checks randomized region to make sure it matches intended randomization scheme
-                        constant_region_correct += 1
-                        if randomized_region not in randomized_region_dict:  # randomized regions that matches intended randomization added to dictionary
-                            randomized_region_dict[randomized_region] = 1
-                        else:
-                            randomized_region_dict[randomized_region] += 1
+    with open(input_filename, 'r') as input_file:
+        for raw_line in input_file:
+            line = raw_line.strip()
+            if line:
+                ct += 1
+                if ct % 4 == 1:  # fastq files has four lines for each sequence read- first line is name of sequence read
+                    seq_name = line
+                if ct % 4 == 2:  # second line is actual sequence read (basecalls)
+                    total += 1
+                    if raw_mode == 1:
+                        seq = line[4:data_end]
+                    else:
+                        seq = line
+                    if seq[:len(constant_5p)] == constant_5p and seq[
+                                                                 -len(
+                                                                     constant_3p):] == constant_3p:  # only process files where constant region matches expectations
+                        randomized_region = seq[len(constant_5p):len(constant_5p) + randomized_size]
+                        if check_randomized_region(randomized_template_region,
+                                                   randomized_region) == 1:  # checks randomized region to make sure it matches intended randomization scheme
+                            constant_region_correct += 1
+                            if randomized_region not in randomized_region_dict:  # randomized regions that matches intended randomization added to dictionary
+                                randomized_region_dict[randomized_region] = 1
+                            else:
+                                randomized_region_dict[randomized_region] += 1
 
     print('%d total reads with %d matching expected pattern' % (total, constant_region_correct))
     sorted_randomized_list = sorted(randomized_region_dict.items(), key=lambda x: x[1],
@@ -194,8 +228,10 @@ else:
     for pos in range(len(above_threshold_read_list)):
         unique_dict[pos] = 1
         seq = above_threshold_read_list[pos][0]
-    ##    filter_start = time.time()
-    for pos1 in range(len(above_threshold_read_list)):
+    looptot = len(above_threshold_read_list)
+    # indices = product(range(looptot, range(looptot))
+
+    for pos1 in tqdm(range(looptot), total=looptot, desc="looping over above_threshold_read_list"):
         if above_threshold_read_list[pos1][1] > 50:
             for pos2 in range(len(above_threshold_read_list)):
                 if pos2 > pos1:  # and unique_dict[pos2] == 1:
@@ -233,7 +269,8 @@ else:
             peptide_list_passing_readcount_threshold.append(peptide)
     pct_ORF = 100.0 * float(ORF) / float(len(filtered_read_list))
     print('%s\t%d\t%d\t%d\t%d\t%d\t%5.2f' % (
-    input_filename, total, constant_region_correct, len(sorted_randomized_list), len(filtered_read_list), ORF, pct_ORF))
+        input_filename, total, constant_region_correct, len(sorted_randomized_list), len(filtered_read_list), ORF,
+        pct_ORF))
     input_file.close()
     output_list = []
     output_peptide_dict = {}
@@ -246,10 +283,10 @@ else:
 
     sorted_output_list = sorted(output_list, key=lambda x: x[1], reverse=True)
     sorted_peptide_list = []
-    for item in sorted_output_list:
-        output_line = '%s\t%d\t%s\n' % (item[0], item[1], item[2])
-        output_all_file.write(output_line)
-        sorted_peptide_list.append(item[2])
-    output_all_file.close()
+    with open(output_all_filepath, 'w') as output_all_file:
+        for item in sorted_output_list:
+            output_line = '%s\t%d\t%s\n' % (item[0], item[1], item[2])
+            output_all_file.write(output_line)
+            sorted_peptide_list.append(item[2])
 
     truncated_peptide_list = sorted_peptide_list[:number_of_peptides_to_plot]
