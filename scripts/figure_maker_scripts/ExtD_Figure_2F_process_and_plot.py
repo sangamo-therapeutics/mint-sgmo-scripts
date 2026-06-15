@@ -8,7 +8,7 @@
 
 """This script can be invoked with the command
 
-    $  python Figure_1F_process_and_plot.py /path/to/oligo_NN_library_loop.txt \
+    $  python ExtD_Figure_2F_process_and_plot.py /path/to/oligo_NN_library_loop.txt \
             /path/to/ExtD_FIGURE_2F_YRGSLP_fq_files.txt \
             /path/to/location/of/fq_files
 
@@ -74,15 +74,19 @@ if __name__ == "__main__":
     # template_filename = r'C:\Users\jeshleman\PycharmProjects\mint-sgmo-scripts\data\figure_files\oligo_NN_library_loop.txt'
     input_filename_list_filename = sys.argv[2]
     print(f"-----Data source file list is {input_filename_list_filename}")
-    input_filename_list_filename = r'C:\Users\jeshleman\PycharmProjects\mint-sgmo-scripts\scripts\figure_maker_scripts\ExtD_FIGURE_2F_YRGSLP_fq_files.txt'
+    # input_filename_list_filename = r'C:\Users\jeshleman\PycharmProjects\mint-sgmo-scripts\scripts\figure_maker_scripts\ExtD_FIGURE_2F_YRGSLP_fq_files.txt'
     try:
         data_location = sys.argv[3]
         print(f"------We will look for data in {data_location}")
     except IndexError:
         data_location = Path(input_filename_list_filename).parent
         print(f"------We will use the default data location {data_location}")
-    print(f"-----------Data location is {data_location}")
+    print(f"-----------Data location is {data_location.resolve()}")
     data_location = Path(data_location)
+    output_loc = data_location / "figure_output"
+    output_loc.mkdir(exist_ok=True)
+    print(f"--------------Output will be written in {output_loc.resolve()}")
+
 
     template_file = Path(template_filename)
     randomized_length = 2
@@ -274,6 +278,5 @@ if __name__ == "__main__":
     ww_logo.ax.set_xlim([- 0.5, 2 - 0.5])
     ww_logo.ax.set_ylim([0, 2])
     plot_filename = loop_seq + '.pdf'
-    output_loc = data_location / "figure_output"
-    output_loc.mkdir(exist_ok=True)
+
     plt.savefig(output_loc / plot_filename)
