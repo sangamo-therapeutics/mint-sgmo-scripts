@@ -1,0 +1,4 @@
+Figure_1F_SATALKR_rep1.fq
+Figure_1F_SATALKR_rep2.fq
+Figure_1F_SATALKR_rep3.fq
+Figure_1F_SATALKR_rep4.fq
