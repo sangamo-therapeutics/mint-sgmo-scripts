@@ -16,16 +16,16 @@ To reproduce the DNA specificity motif for the SATALKR helix in Figure 1F, you w
 
 ## Extended Data Figure 2B:
 To reproduce the Bxb1 helix selection results in Extended Data Figure 2B you will need the follwing data files:
-* ExtD_FIGURE_2B_GAC_batch2.fq (GAC)
-* ExtD_FIGURE_2B_GTC_batch1.fq (GTC)
-* ExtD_FIGURE_2B_CAG_batch4b.fq (CAG) [not uploaded to SRA yet]
-* ExtD_FIGURE_2B_AGG_batch2.fq (AGG)
-* ExtD_FIGURE_2B_AAT_batch4.fq (AAT)
-* ExtD_FIGURE_2B_CTC_batch2.fq (CTC)
-* ExtD_FIGURE_2B_CAA_batch1.fq (CAA)
-* ExtD_FIGURE_2B_CAT_batch3.fq (CAT)
-* ExtD_FIGURE_2B_CGC_batch4.fq (CGC)
-* ExtD_FIGURE_2B_ACA_batch2.fq (ACA)
+* ExtD_FIGURE_2B_GAC_batch2.fq 
+* ExtD_FIGURE_2B_GTC_batch1.fq 
+* ExtD_FIGURE_2B_CAG_batch4b.fq 
+* ExtD_FIGURE_2B_AGG_batch2.fq 
+* ExtD_FIGURE_2B_AAT_batch4.fq 
+* ExtD_FIGURE_2B_CTC_batch2.fq 
+* ExtD_FIGURE_2B_CAA_batch1.fq 
+* ExtD_FIGURE_2B_CAT_batch3.fq 
+* ExtD_FIGURE_2B_CGC_batch4.fq 
+* ExtD_FIGURE_2B_ACA_batch2.fq 
 
 Generating the plots is a two step process where:
 * the first step converts the raw sequence data into a sorted list of selected helix sequences
@@ -34,6 +34,23 @@ Generating the plots is a two step process where:
 #### usage: python helix_selection_processing.py helix_library_template.txt ExtD_FIGURE_2B_AAT_batch4.fq
 #### usage: python helix_pattern_finder_and_plot.py ExtD_FIGURE_2B_AAT_batch4_peptides_all.txt
   
+## Extended Data Figure 2C:
+To reproduce the Bxb1 loop selection results in Extended Data Figure 2C you will need the follwing data files:
+* ExtD_FIGURE_2C_AC_batch1b.fq
+* ExtD_FIGURE_2C_AT_batch1b.fq
+* ExtD_FIGURE_2C_TC_batch1b.fq
+* ExtD_FIGURE_2C_TT_batch1b.fq
+
+Generating the plots is a three step process where:
+* the first step converts the raw sequence data into a sorted list of selected helix sequences
+* the second step identifies enriched 4 residue patterns and generates an overall plot
+* the third step breaks the patterns up into separate motifs and generates a plot for each motif
+
+The first step filters out likely sequence artifacts that are very similar to a much more frequent sequence read. This process can be very slow for files of this size so the results of this initial step are also provided so that the plots can be reproduced more quickly. The plot for AC represents motif1, the plot for AT represents all pattern matches, the plot for TC represents motif 2, and the plot for TT represents all pattern matches.
+
+#### usage: python loop_selection_process.py loop_library_template.txt ExtD_FIGURE_2C_AC_batch1b.fq
+#### usage: python loop_pattern_finder.py ExtD_FIGURE_2C_AC_batch1b_peptides_all.txt
+#### usage: loop_pattern_sort_and_plot.py ExtD_FIGURE_2C_AC_batch1b_peptides_all_4res_patterns.txt
 
 ## Extended Data Figure 2D:
 To reproduce the Bxb1 hairpin selection results in Extended Data Figure 2E you will need the follwing data files:
