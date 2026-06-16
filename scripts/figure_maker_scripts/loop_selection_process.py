@@ -141,10 +141,8 @@ if __name__ == "__main__":
 
     # read input file and convert into a list of filenames for input fastq files
     template_filename = sys.argv[1]  # template sequence is oligo_NNN_library_3-6-2024.txt for this example
-
     print(f"---Template file is {template_filename}")
     input_filename = sys.argv[2]
-
     print(f"-----Data file is {input_filename}")
     input_path = Path(input_filename)
     data_location = Path(input_filename).parent
@@ -158,7 +156,7 @@ if __name__ == "__main__":
         except (TypeError, ValueError):
             testlimit = None
     else:
-        testlimit = 3000
+        testlimit = None
     if not testlimit:
         print("This script can take a very long time.  If you are testing its functionality, you "
               "should re-run with a third positional argument suggesting a smaller (e.g. 1000) sequences.")
@@ -181,7 +179,7 @@ if __name__ == "__main__":
     peptide_length = int(randomized_size / 3)
     peptide_offset = peptide_offset_dict[peptide_length]
     raw_mode = 1
-    truncated_filename = input_filename[:-3]
+    truncated_filename = input_path.name[:-3]
 
     output_all_filename = truncated_filename + '_peptides_all.txt'  # revmoes _R1.fq
     output_all_filepath = output_loc / output_all_filename
@@ -282,7 +280,7 @@ if __name__ == "__main__":
                 output_peptide_dict[peptide] = 1
 
     sorted_output_list = sorted(output_list, key=lambda x: x[1], reverse=True)
-    with open(output_all_filename, 'w') as output_all_file:
+    with open(output_loc / output_all_filename, 'w') as output_all_file:
 
         for item in sorted_output_list:
             output_line = '%s\t%d\t%s\n' % (item[0], item[1], item[2])
