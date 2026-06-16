@@ -9,7 +9,7 @@ import sys
 import logomaker
 import matplotlib.pyplot as plt
 import pandas as pd
-
+from pathlib import Path
 residue_list = ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y']
 
 

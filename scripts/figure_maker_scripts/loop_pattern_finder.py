@@ -5,6 +5,7 @@
 
 import math
 import sys
+from pathlib import Path
 
 import logomaker
 import matplotlib.pyplot as plt
@@ -172,23 +173,29 @@ def pattern_create(seq1, seq2):
     return pattern
 
 
-if len(sys.argv) < 2:
-    print('please give the input filename as a command line argument')
-else:
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        raise ValueError('please give the input filename as a command line argument')
+
     read_threshold = 10
     tetrapeptide_count_threshold = 3
     data_filename = sys.argv[1]
-
+    print(f"---Data file is {data_filename}")
     peptide_list = []
-    data_file = open(data_filename, 'r')
-    truncated_filename = data_filename[:-4]
-    for raw_line in data_file:
-        line = raw_line.strip()
-        if line:
-            DNA, raw_DNA_count, peptide = line.split('\t')
-            DNA_count = int(raw_DNA_count)
-            if DNA_count >= read_threshold:
-                peptide_list.append(peptide)
+    data_file_path = Path(data_filename)
+    output_dir = data_file_path.parent
+    print(f"-----------Output directory is {output_dir.resolve()}")
+
+    truncated_filename = data_file_path.name[:-4]
+    # truncated_filename = data_filename[:-4]
+    with open(data_file_path) as data_file:
+        for raw_line in data_file:
+            line = raw_line.strip()
+            if line:
+                DNA, raw_DNA_count, peptide = line.split('\t')
+                DNA_count = int(raw_DNA_count)
+                if DNA_count >= read_threshold:
+                    peptide_list.append(peptide)
 
     peptide_dict = {}
     dipeptide_dict = {}
@@ -198,20 +205,23 @@ else:
     if peptide_length == 6:
         exclude_pos_list = []
         peptide_offset = 154
-    if peptide_length == 7:
+    elif peptide_length == 7:
         exclude_pos_list = [4]
         peptide_offset = 231
-    if peptide_length == 9:
+    elif peptide_length == 9:  # fixme -- missing peptide offset?
         exclude_pos_list = [1, 2, 6]
-    if peptide_length == 12:
+        peptide_offset = "FIXME"  # fixme
+    elif peptide_length == 12:
         exclude_pos_list = [1, 3, 5, 6, 10]
         peptide_offset = 314
-    if peptide_length == 10:
+    elif peptide_length == 10:
         exclude_pos_list = [3, 5, 6]
         peptide_offset = 314
-    if peptide_length == 16:
+    elif peptide_length == 16:
         exclude_pos_list = [1, 5, 7, 8, 9, 10, 12, 14]
         peptide_offset = 314
+    else:
+        raise ValueError(f"Peptide length of {peptide_length} incompatible with the script.")
 
     for pos in range(peptide_length):
         peptide_dict[pos] = {}
@@ -314,22 +324,27 @@ else:
         pval_list.append(item[1][0])
         # print(item[1][0])
     pval_correction_dict = fdr_correction(pval_list)
+
     pattern_filename = truncated_filename + '_4res_patterns.txt'
-    pattern_file = open(pattern_filename, 'w')
+    # pattern_file = open(pattern_filename, 'w')
+
     filtered_pattern_list = sorted_enrichment_list[:100]
     final_pattern_list = []
-    for item in filtered_pattern_list:
-        pval = item[1][0]
-        # print(pval)
-        corrected_pval = pval_correction_dict[pval]
-        # print(corrected_pval)
-        if corrected_pval < 0.05 and item[1][2] >= tetrapeptide_count_threshold:
-            print('%s\t%6.2e\t%5.2f\t%d' % (item[0], corrected_pval, item[1][1], item[1][2]))
-            pattern_file.write(
-                '%s\t%s\t%6.2e\t%5.2f\t%d\n' % (truncated_filename, item[0], corrected_pval, item[1][1], item[1][2]))
-            final_pattern_list.append(item)
 
-    data_file.close()
+    with open(output_dir / pattern_filename, 'w') as pattern_file:
+        for item in filtered_pattern_list:
+            pval = item[1][0]
+            # print(pval)
+            corrected_pval = pval_correction_dict[pval]
+            # print(corrected_pval)
+            if corrected_pval < 0.05 and item[1][2] >= tetrapeptide_count_threshold:
+                print('%s\t%6.2e\t%5.2f\t%d' % (item[0], corrected_pval, item[1][1], item[1][2]))
+                pattern_file.write(
+                    '%s\t%s\t%6.2e\t%5.2f\t%d\n' % (
+                        truncated_filename, item[0], corrected_pval, item[1][1], item[1][2]))
+                final_pattern_list.append(item)
+
+    # data_file.close()
     peptide_pattern_score_dict = {}
     for peptide in peptide_list:
         pattern_match_score = 0
@@ -356,13 +371,14 @@ else:
             IC_scaled_residue_pos_prob_dict[res][pos + peptide_offset] = 0.0
 
     output_filename = truncated_filename + '_top_scores.txt'
-    output_file = open(output_filename, 'w')
 
-    for item in sorted_peptide_score_list[:100]:
-        # print('%s\t%5.2f' %(item[0], item[1]))
-        if item[1] > 0:
-            output_file.write('%s\t%5.2f\n' % (item[0], item[1]))
-            plot_peptide_list.append(item[0])
+    with open(output_dir / output_filename, 'w') as output_file:
+        for item in sorted_peptide_score_list[:100]:
+            # print('%s\t%5.2f' %(item[0], item[1]))
+            if item[1] > 0:
+                output_file.write('%s\t%5.2f\n' % (item[0], item[1]))
+                plot_peptide_list.append(item[0])
+
     if len(plot_peptide_list) > 0:
         for peptide in plot_peptide_list:
             for pos in range(peptide_length):
@@ -418,7 +434,8 @@ else:
                         fontsize=9)
         ww_logo.ax.set_xlim([peptide_offset - 0.5, peptide_offset + peptide_length - 0.5])
         plot_filename = truncated_filename + '_pattern_match.png'
-        plt.savefig(plot_filename)
+        output_dir = data_file_path.parent
+        plt.savefig(output_dir / plot_filename)
     else:
         print('no peptides match criteria for plotting')
 # boo
