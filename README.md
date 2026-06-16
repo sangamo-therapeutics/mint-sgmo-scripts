@@ -68,6 +68,9 @@ This output can be used in step 2.
     $ python helix_pattern_finder_and_plot.py \ 
         /path/to/data_output/ExtD_FIGURE_2B_AAT_batch4_peptides_all.txt
 
+The output text and graph image will be written in the subdirectory "output_data" in the same directory as input file
+
+
 ## Extended Data Figure 2C:
 
 To reproduce the Bxb1 loop selection results in Extended Data Figure 2C you will need the follwing data files:
@@ -95,11 +98,18 @@ plot for TC represents motif 2, and the plot for TT represents all pattern match
 
 The output file will be written in the subdirectory "data_output" in the same directory as the fastq / fq file
 
+for testing, an optional argument specifying a read limit can be added e.g.
+
+    $  python loop_selection_process.py /path/to/loop_library_template.txt \
+    /path/to/location/of/fq_file/ExtD_FIGURE_2C_AC_batch1b.fq 3000
+
+This will limit it to the number of reads specified. This is useful for debugging, but will not produce reliable data.
+
 This output can be used in step 2.
 
 #### usage (step 2): 
 
-    $ python loop_pattern_finder.py /path/to/data_output/ExtD_FIGURE_2C_AC_batch1b_peptides_all.txt
+    $ python loop_pattern_finder.py /path/to/data_output/ExtD_FIGURE_2C_AC_batch1_peptides_all.txt
 
 This output will be used in step 3.
 
@@ -132,21 +142,31 @@ from their respective sample
 #### usage (step 1):  
     $  python hairpin_selection_processing.py \
           /path/to/hairpin_library_template.txt \
-          /path/to/ExtD_FIGURE_2D_AAVS15032L_CTGAGCGC_batch3.fq
+          /path/to/ExtD_FIGURE_2D_chr1_25477444L_GCCCCTTC_batch4.fq
 
 The output file will be written in the subdirectory "data_output" in the same directory as the fastq / fq file
+
+
+for testing, an optional argument specifying a read limit can be added e.g.
+
+        $  python hairpin_selection_processing.py \
+          /path/to/hairpin_library_template.txt \
+          /path/to/ExtD_FIGURE_2D_chr1_25477444L_GCCCCTTC_batch4.fq 3000
+
+This will limit it to the number of reads specified. This is useful for debugging, but will not produce reliable data.
+
 
 This output can be used in step 2.
 
 #### usage (step 2): 
     $  python hairpin_pattern_finder.py \
-        /path/to/data_output/ExtD_FIGURE_2D_AAVS15032L_CTGAGCGC_batch3_peptides_all.txt
+        /path/to/data_output/ExtD_FIGURE_2D_chr1_25477444L_GCCCCTTC_batch4_peptides_all.txt
 
 This output can be used in step 3.
 
 #### usage (step 3): 
     $ python hairpin_pattern_sort_and_plot.py \
-      /path/to//data_output/ExtD_FIGURE_2D_AAVS15032L_CTGAGCGC_batch3_peptides_all_4res_patterns.txt
+      /path/to//data_output/ExtD_FIGURE_2D_chr1_25477444L_GCCCCTTC_batch4_peptides_all_4res_patterns.txt
 
 ## Extended Data Figure 2F:
 

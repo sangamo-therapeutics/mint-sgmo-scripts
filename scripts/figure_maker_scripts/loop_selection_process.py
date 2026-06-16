@@ -235,10 +235,11 @@ if __name__ == "__main__":
         seq2, count2 = sorted_randomized_list[pos2]
         read_count_ratio = count1 / count2
         mismatch_threshold = 2  # requires at least two mismatches
-        if read_count_ratio > 50:
-            mismatch_threshold = 3  # larger imbalances between reads changes the threshold for filtering out reads
         if read_count_ratio > 2500:
             mismatch_threshold = 4
+        elif read_count_ratio > 50:
+            mismatch_threshold = 3  # larger imbalances between reads changes the threshold for filtering out reads
+
         mismatches = count_mismatches(seq1, seq2, mismatch_threshold)
         filtered = 1
         if mismatches < mismatch_threshold:

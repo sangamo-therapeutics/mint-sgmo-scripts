@@ -1,5 +1,6 @@
 import math
 import sys
+from pathlib import Path
 
 import logomaker
 import matplotlib.pyplot as plt
@@ -38,9 +39,10 @@ def IC(residue_frequency_dict, pos):
     return IC_value
 
 
-if len(sys.argv) < 2:
-    print('please give the input filename as a command line argument')
-else:
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        raise ValueError('please give the input filename as a command line argument')
+
     peptide_count_dict = {}
     DNA_seq_dict = {}
     peptide_length = 12
@@ -48,25 +50,39 @@ else:
     peptide_list = []
     pattern_list = []
     data_filename = sys.argv[1]
-    truncated_filename = data_filename[:-18]
+    # local_dir = Path(__file__).parent / "input_text_files"
+    # data_name = r"ExtD_FIGURE_2D_chr1_25477444L_GCCCCTTC_batch4_peptides_all_4res_patterns.txt"
+    # data_filename = local_dir / data_name
+    assert data_filename.exists()
+    print(f"---Data file is {data_filename}")
+    data_file_path = Path(data_filename)
+    data_dir = data_file_path.parent
+    output_dir = data_dir / "output_data"
+    output_dir.mkdir(exist_ok=True)
+    print(f"-----------Output directory is {output_dir.resolve()}")
+
+    truncated_filename = data_file_path.name[:-18]
+
     peptide_filename = truncated_filename + '.txt'
-    peptide_file = open(peptide_filename, 'r')
-    for raw_line in peptide_file:
-        line = raw_line.strip()
-        DNA, raw_count, peptide = line.split()
-        if peptide not in peptide_list:
-            peptide_list.append(peptide)
-            peptide_count_dict[peptide] = int(raw_count)
-            DNA_seq_dict[peptide] = DNA
+    # peptide_file = open( data_dir  / peptide_filename, 'r')
+    with open(data_dir / peptide_filename, 'r') as peptide_file:
+        for raw_line in peptide_file:
+            line = raw_line.strip()
+            DNA, raw_count, peptide = line.split()
+            if peptide not in peptide_list:
+                peptide_list.append(peptide)
+                peptide_count_dict[peptide] = int(raw_count)
+                DNA_seq_dict[peptide] = DNA
     print(len(peptide_list))
     print(truncated_filename)
-    data_file = open(data_filename, 'r')
-    for raw_line in data_file:
-        line = raw_line.strip()
-        if line and line[0] != '#':
-            pattern_filename, pattern, raw_pval, raw_enrich, raw_count = line.split()
-            pval = float(raw_pval)
-            pattern_list.append((pattern, pval))
+    # data_file = open(data_filename, 'r')
+    with open(data_dir / data_filename, 'r') as data_file:
+        for raw_line in data_file:
+            line = raw_line.strip()
+            if line and line[0] != '#':
+                pattern_filename, pattern, raw_pval, raw_enrich, raw_count = line.split()
+                pval = float(raw_pval)
+                pattern_list.append((pattern, pval))
     sorted_pattern_list = sorted(pattern_list, key=lambda x: x[1], reverse=False)
 
     in_motif_list = []
@@ -117,7 +133,7 @@ else:
     while motif_pos < motif_count:
         if len(motif_dict[motif_pos]) >= 5:
             motif_filename = truncated_filename + '_motif%d.txt' % output_motif_num
-            motif_file = open(motif_filename, 'w')
+            motif_file = open(output_dir / motif_filename, 'w')
             for item in motif_dict[motif_pos]:
                 print('%d\t%s\t%5.2e' % (item, sorted_pattern_list[item][0], sorted_pattern_list[item][1]))
                 motif_file.write('%d\t%s\t%5.2e\n' % (item, sorted_pattern_list[item][0], sorted_pattern_list[item][1]))
@@ -141,10 +157,10 @@ else:
                     pattern_match_score = 0
                     for item in motif_dict[motif_pos]:
                         if pattern_match(peptide, sorted_pattern_list[item][0]) == 1:
-                            ##                            if len(unrepresented_motif_list) > 0:
-                            ##                                if sorted_pattern_list[item][0] in unrepresented_motif_list:
-                            ##                                    new_pattern += '%s\t' %sorted_pattern_list[item][0] #show pattern if first time pattern matches a peptide
-                            ##                                    unrepresented_motif_list.remove(sorted_pattern_list[item][0])
+                            # #                            if len(unrepresented_motif_list) > 0:
+                            # #                                if sorted_pattern_list[item][0] in unrepresented_motif_list:
+                            # #                                    new_pattern += '%s\t' %sorted_pattern_list[item][0] #show pattern if first time pattern matches a peptide
+                            # #                                    unrepresented_motif_list.remove(sorted_pattern_list[item][0])
                             if sorted_pattern_list[item][1] > 0:
                                 pattern_match_score += -1.0 * math.log(sorted_pattern_list[item][1], 10)
                             else:
@@ -166,7 +182,7 @@ else:
                                 unrepresented_motif_list.remove(sorted_pattern_list[item][0])
                 motif_peptides.append(peptide)
                 motif_file.write('%s\t%s\t%d\t%10.2f\t%s\n' % (
-                peptide, DNA_seq_dict[peptide], peptide_count_dict[peptide], pattern_match_score, new_pattern))
+                    peptide, DNA_seq_dict[peptide], peptide_count_dict[peptide], pattern_match_score, new_pattern))
             print(len(motif_peptides))
             residue_pos_dict = {}
             residue_pos_prob_dict = {}
@@ -241,7 +257,7 @@ else:
 
             ww_logo.ax.set_xlim([peptide_offset - 0.5, peptide_offset + peptide_length - 0.5])
 
-            plt.savefig(plot_filename)
+            plt.savefig(output_dir / plot_filename)
             motif_file.close()
 
         motif_pos += 1

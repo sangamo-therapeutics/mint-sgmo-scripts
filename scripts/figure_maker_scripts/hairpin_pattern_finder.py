@@ -1,9 +1,25 @@
+# this script identifies enriched 4 residue motifs in selected Bxb1 loop sequences
+# input is a sorted list of selected peptide sequences
+# output is a plot of the sequences that best match the enriched patters and a file of all enriched patterns that were identified
+# written by Jeff Miller for Sangamo Therapeutics
 import math
 import sys
+from itertools import combinations, combinations_with_replacement
+from pathlib import Path
 
 import numpy as np
 from scipy.stats import binomtest
 
+"""This script can be invoked with the command similar to:
+
+        $  python hairpin_pattern_finder.py /path/to/ExtD_FIGURE_2D_chr1_25477444L_GCCCCTTC_batch4_peptides_all.txt
+
+    where ExtD_FIGURE_2D_chr1_25477444L_GCCCCTTC_batch4_peptides_all.txt is an output from the script 'hairpin_selection_process.py'
+
+    The output files will be written to the subdirectory "output_data" in the same directory as the input file
+
+
+"""
 residue_list = ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y']
 dipeptide_list = []
 for residue1 in residue_list:
@@ -22,11 +38,11 @@ for residue1 in residue_list:
 def fdr_correction(p_values, alpha=0.05):
     """
     Apply False Discovery Rate (FDR) correction to a list of p-values using the Benjamini-Hochberg procedure.
-    
+
     Args:
         p_values (list): List of p-values.
         alpha (float): Desired significance level (default: 0.05).
-        
+
     Returns:
         dictionary that applies correction to an input p-val
     """
@@ -178,13 +194,24 @@ def pattern_compare(pattern1, pattern2):
     return (matches, mismatches)
 
 
-if len(sys.argv) < 2:
-    print('please give the input filename as a command line argument')
-else:
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        raise ValueError('please give the input filename as a command line argument')
     data_filename = sys.argv[1]
-    truncated_filename = data_filename[:-4]
+    # local_dir = Path(__file__).parent / "input_text_files"
+    # data_name = r"ExtD_FIGURE_2D_chr1_25477444L_GCCCCTTC_batch4_peptides_all.txt"
+    # data_filename = local_dir / data_name
+
+    data_file_path = Path(data_filename)
+    print(f"---Data file is {data_filename}")
+    truncated_filename = data_file_path.name[:-4]
+
+    output_dir = data_file_path.parent / "output_data"
+    output_dir.mkdir(exist_ok=True)
+    print(f"-----------Output directory is {output_dir.resolve()}")
+
     pattern_filename = truncated_filename + '_4res_patterns.txt'
-    pattern_file = open(pattern_filename, 'w')
+    # pattern_file = open(pattern_filename, 'w')
     plot_peptide_list = []
 
     for res322 in ['G', 'A', 'R', 'P']:
@@ -193,16 +220,16 @@ else:
         tetrapeptide_count_threshold = 3
         total_peptides = 0
         peptide_list = []
-        data_file = open(data_filename, 'r')
-        for raw_line in data_file:
-            line = raw_line.strip()
-            if line:
-                DNA, raw_DNA_count, peptide = line.split('\t')
-                DNA_count = int(raw_DNA_count)
-                if DNA_count >= read_threshold:
-                    total_peptides += 1
-                    if peptide[8] == res322:
-                        peptide_list.append(peptide)
+        with  open(data_filename, 'r') as data_file:
+            for raw_line in data_file:
+                line = raw_line.strip()
+                if line:
+                    DNA, raw_DNA_count, peptide = line.split('\t')
+                    DNA_count = int(raw_DNA_count)
+                    if DNA_count >= read_threshold:
+                        total_peptides += 1
+                        if peptide[8] == res322:
+                            peptide_list.append(peptide)
 
         peptide_dict = {}
         dipeptide_dict = {}
@@ -210,34 +237,46 @@ else:
         peptide_length = len(peptide_list[0])
         if peptide_length == 6:
             exclude_pos_list = []
-        if peptide_length == 7:
+            peptide_offset = 0  # FIXME  THIS COULD BE WRONG!
+        elif peptide_length == 7:
             exclude_pos_list = [4]
             peptide_offset = 231
-        if peptide_length == 9:
+        elif peptide_length == 9:
             exclude_pos_list = [1, 2, 6]
-        if peptide_length == 12:
+        elif peptide_length == 12:
             exclude_pos_list = [1, 3, 5, 6, 8,
                                 10]  # don't look for patterns involving residue322 which is only allowed to be G, A, R, or P
             peptide_offset = 314
+        else:
+            raise ValueError(f"Peptide length {peptide_length} is unsupported")
+
+        pep_positions = [p for p in range(peptide_length) if p not in exclude_pos_list]
 
         for pos in range(peptide_length):
             peptide_dict[pos] = {}
             for residue in residue_list:
                 peptide_dict[pos][residue] = 0
+
         for pos1 in range(peptide_length):
             for pos2 in range(peptide_length):
                 if pos2 > pos1:
                     dipeptide_dict[(pos1, pos2)] = {}
                     for dipeptide in dipeptide_list:
                         dipeptide_dict[(pos1, pos2)][dipeptide] = 0
-        for pos1 in range(peptide_length):
-            for pos2 in range(peptide_length):
-                for pos3 in range(peptide_length):
-                    for pos4 in range(peptide_length):
-                        if pos2 > pos1 and pos3 > pos2 and pos4 > pos3 and pos1 not in exclude_pos_list and pos2 not in exclude_pos_list and pos3 not in exclude_pos_list and pos4 not in exclude_pos_list:
-                            tetrapeptide_dict[(pos1, pos2, pos3, pos4)] = {}
-                            for tetrapeptide in tetrapeptide_list:
-                                tetrapeptide_dict[(pos1, pos2, pos3, pos4)][tetrapeptide] = 0
+
+        for pos1, pos2, pos3, pos4 in combinations(pep_positions, 4):
+            assert pos1 < pos2 < pos3 < pos4
+            tetrapeptide_dict[(pos1, pos2, pos3, pos4)] = {}
+            for tetrapeptide in tetrapeptide_list:
+                tetrapeptide_dict[(pos1, pos2, pos3, pos4)][tetrapeptide] = 0
+        # for pos1 in range(peptide_length):
+        #     for pos2 in range(peptide_length):
+        #         for pos3 in range(peptide_length):
+        #             for pos4 in range(peptide_length):
+        #                 if pos2 > pos1 and pos3 > pos2 and pos4 > pos3 and pos1 not in exclude_pos_list and pos2 not in exclude_pos_list and pos3 not in exclude_pos_list and pos4 not in exclude_pos_list:
+        #                     tetrapeptide_dict[(pos1, pos2, pos3, pos4)] = {}
+        #                     for tetrapeptide in tetrapeptide_list:
+        #                         tetrapeptide_dict[(pos1, pos2, pos3, pos4)][tetrapeptide] = 0
 
         for peptide in peptide_list:
             for pos in range(peptide_length):
@@ -246,14 +285,22 @@ else:
                 for pos2 in range(peptide_length):
                     if pos2 > pos1:
                         dipeptide_dict[(pos1, pos2)][peptide[pos1] + peptide[pos2]] += 1
+
+        # pep_positions = [p for p in range(peptide_length) if p not in exclude_pos_list]
         for peptide in peptide_list:
-            for pos1 in range(peptide_length):
-                for pos2 in range(peptide_length):
-                    for pos3 in range(peptide_length):
-                        for pos4 in range(peptide_length):
-                            if pos2 > pos1 and pos3 > pos2 and pos4 > pos3 and pos1 not in exclude_pos_list and pos2 not in exclude_pos_list and pos3 not in exclude_pos_list and pos4 not in exclude_pos_list:
-                                tetrapeptide = peptide[pos1] + peptide[pos2] + peptide[pos3] + peptide[pos4]
-                                tetrapeptide_dict[(pos1, pos2, pos3, pos4)][tetrapeptide] += 1
+            for pos1, pos2, pos3, pos4 in combinations(pep_positions, 4):
+                assert pos1 < pos2 < pos3 < pos4
+                tetrapeptide = peptide[pos1] + peptide[pos2] + peptide[pos3] + peptide[pos4]
+                tetrapeptide_dict[(pos1, pos2, pos3, pos4)][tetrapeptide] += 1
+
+        # for peptide in peptide_list:
+        #     for pos1 in range(peptide_length):
+        #         for pos2 in range(peptide_length):
+        #             for pos3 in range(peptide_length):
+        #                 for pos4 in range(peptide_length):
+        #                     if pos2 > pos1 and pos3 > pos2 and pos4 > pos3 and pos1 not in exclude_pos_list and pos2 not in exclude_pos_list and pos3 not in exclude_pos_list and pos4 not in exclude_pos_list:
+        #                         tetrapeptide = peptide[pos1] + peptide[pos2] + peptide[pos3] + peptide[pos4]
+        #                         tetrapeptide_dict[(pos1, pos2, pos3, pos4)][tetrapeptide] += 1
         ##for residue in residue_list:
         ##    output_line = '%s\t' %residue
         ##    for pos in range(peptide_length):
@@ -294,69 +341,111 @@ else:
         ##                            print('%d\t%s\t%d\t%s\t%5.2f' %(pos1, res1, pos2, res2, enrichment))
         enriched_tetramer_dict = {}
         comparisons = 0
-        for pos1 in range(peptide_length):
-            for pos2 in range(peptide_length):
-                for pos3 in range(peptide_length):
-                    for pos4 in range(peptide_length):
-                        if pos2 > pos1 and pos3 > pos2 and pos4 > pos3 and pos1 not in exclude_pos_list and pos2 not in exclude_pos_list and pos3 not in exclude_pos_list and pos4 not in exclude_pos_list:
-                            for res1 in residue_list:
-                                for res2 in residue_list:
-                                    for res3 in residue_list:
-                                        for res4 in residue_list:
-                                            tetrapeptide = res1 + res2 + res3 + res4
-                                            if tetrapeptide_dict[(pos1, pos2, pos3, pos4)][tetrapeptide] >= 1:
-                                                formatted_tetrapeptide = format_tetrapeptide(tetrapeptide, pos1, pos2,
-                                                                                             pos3, pos4, peptide_length,
-                                                                                             res322)
-                                                observed_tetrapeptide = tetrapeptide_dict[(pos1, pos2, pos3, pos4)][
-                                                    tetrapeptide]
-                                                expected_tetrapeptide = float(total_peptides) * (
-                                                        residue_frequency_dict[pos1][res1] *
-                                                        residue_frequency_dict[pos2][res2] *
-                                                        residue_frequency_dict[pos3][res3] *
-                                                        residue_frequency_dict[pos4][res4])
-                                                expected_fraction = (residue_frequency_dict[pos1][res1] *
-                                                                     residue_frequency_dict[pos2][res2] *
-                                                                     residue_frequency_dict[pos3][res3] *
-                                                                     residue_frequency_dict[pos4][res4])
-                                                enrichment = float(observed_tetrapeptide) / expected_tetrapeptide
-                                                if enrichment > 1:
-                                                    dipeptide12 = res1 + res2
-                                                    dipeptide34 = res3 + res4
-                                                    a = tetrapeptide_dict[(pos1, pos2, pos3, pos4)][tetrapeptide]
-                                                    b = dipeptide_dict[(pos1, pos2)][dipeptide12] - a
-                                                    c = dipeptide_dict[(pos3, pos4)][dipeptide34] - a
-                                                    d = total_peptides - a - b - c
-                                                    table = np.array([[a, b], [c, d]])
-                                                    # result = fisher_exact(table, alternative='greater')
-                                                    result = binomtest(observed_tetrapeptide, total_peptides,
-                                                                       expected_fraction, alternative='greater')
-                                                    pvalue = result.pvalue
-                                                    # print(pvalue)
-                                                    enriched_tetramer_dict[formatted_tetrapeptide] = (
-                                                        pvalue, enrichment,
-                                                        tetrapeptide_dict[(pos1, pos2, pos3, pos4)][tetrapeptide])
+
+        for pos1, pos2, pos3, pos4 in combinations(pep_positions, 4):
+            assert pos1 < pos2 < pos3 < pos4  # this should never h
+            for res1, res2, res3, res4 in combinations_with_replacement(residue_list, 4):
+                tetrapeptide = res1 + res2 + res3 + res4
+                if tetrapeptide_dict[(pos1, pos2, pos3, pos4)][tetrapeptide] >= 1:
+                    formatted_tetrapeptide = format_tetrapeptide(tetrapeptide, pos1, pos2,
+                                                                 pos3, pos4, peptide_length,
+                                                                 res322)
+                    observed_tetrapeptide = tetrapeptide_dict[(pos1, pos2, pos3, pos4)][
+                        tetrapeptide]
+                    expected_tetrapeptide = float(total_peptides) * (
+                            residue_frequency_dict[pos1][res1] *
+                            residue_frequency_dict[pos2][res2] *
+                            residue_frequency_dict[pos3][res3] *
+                            residue_frequency_dict[pos4][res4])
+                    expected_fraction = (residue_frequency_dict[pos1][res1] *
+                                         residue_frequency_dict[pos2][res2] *
+                                         residue_frequency_dict[pos3][res3] *
+                                         residue_frequency_dict[pos4][res4])
+                    enrichment = float(observed_tetrapeptide) / expected_tetrapeptide
+                    if enrichment > 1:
+                        dipeptide12 = res1 + res2
+                        dipeptide34 = res3 + res4
+                        a = tetrapeptide_dict[(pos1, pos2, pos3, pos4)][tetrapeptide]
+                        b = dipeptide_dict[(pos1, pos2)][dipeptide12] - a
+                        c = dipeptide_dict[(pos3, pos4)][dipeptide34] - a
+                        d = total_peptides - a - b - c
+                        table = np.array([[a, b], [c, d]])
+                        # result = fisher_exact(table, alternative='greater')
+                        result = binomtest(observed_tetrapeptide, total_peptides,
+                                           expected_fraction, alternative='greater')
+                        pvalue = result.pvalue
+                        # print(pvalue)
+                        enriched_tetramer_dict[formatted_tetrapeptide] = (
+                            pvalue, enrichment,
+                            tetrapeptide_dict[(pos1, pos2, pos3, pos4)][tetrapeptide])
+
+        # # # OLD WAY
+        # for pos1 in range(peptide_length):
+        #     for pos2 in range(peptide_length):
+        #         for pos3 in range(peptide_length):
+        #             for pos4 in range(peptide_length):
+        #                 if pos2 > pos1 and pos3 > pos2 and pos4 > pos3 and pos1 not in exclude_pos_list and pos2 not in exclude_pos_list and pos3 not in exclude_pos_list and pos4 not in exclude_pos_list:
+        #                     for res1 in residue_list:
+        #                         for res2 in residue_list:
+        #                             for res3 in residue_list:
+        #                                 for res4 in residue_list:
+        #                                     tetrapeptide = res1 + res2 + res3 + res4
+        #                                     if tetrapeptide_dict[(pos1, pos2, pos3, pos4)][tetrapeptide] >= 1:
+        #                                         formatted_tetrapeptide = format_tetrapeptide(tetrapeptide, pos1, pos2,
+        #                                                                                      pos3, pos4, peptide_length,
+        #                                                                                      res322)
+        #                                         observed_tetrapeptide = tetrapeptide_dict[(pos1, pos2, pos3, pos4)][
+        #                                             tetrapeptide]
+        #                                         expected_tetrapeptide = float(total_peptides) * (
+        #                                                 residue_frequency_dict[pos1][res1] *
+        #                                                 residue_frequency_dict[pos2][res2] *
+        #                                                 residue_frequency_dict[pos3][res3] *
+        #                                                 residue_frequency_dict[pos4][res4])
+        #                                         expected_fraction = (residue_frequency_dict[pos1][res1] *
+        #                                                              residue_frequency_dict[pos2][res2] *
+        #                                                              residue_frequency_dict[pos3][res3] *
+        #                                                              residue_frequency_dict[pos4][res4])
+        #                                         enrichment = float(observed_tetrapeptide) / expected_tetrapeptide
+        #                                         if enrichment > 1:
+        #                                             dipeptide12 = res1 + res2
+        #                                             dipeptide34 = res3 + res4
+        #                                             a = tetrapeptide_dict[(pos1, pos2, pos3, pos4)][tetrapeptide]
+        #                                             b = dipeptide_dict[(pos1, pos2)][dipeptide12] - a
+        #                                             c = dipeptide_dict[(pos3, pos4)][dipeptide34] - a
+        #                                             d = total_peptides - a - b - c
+        #                                             table = np.array([[a, b], [c, d]])
+        #                                             # result = fisher_exact(table, alternative='greater')
+        #                                             result = binomtest(observed_tetrapeptide, total_peptides,
+        #                                                                expected_fraction, alternative='greater')
+        #                                             pvalue = result.pvalue
+        #                                             # print(pvalue)
+        #                                             enriched_tetramer_dict[formatted_tetrapeptide] = (
+        #                                                 pvalue, enrichment,
+        #                                                 tetrapeptide_dict[(pos1, pos2, pos3, pos4)][tetrapeptide])
+
         sorted_enrichment_list = sorted(enriched_tetramer_dict.items(), key=lambda x: x[1], reverse=False)
         pval_list = []
         for item in sorted_enrichment_list:
             pval_list.append(item[1][0])
             # print(item[1][0])
         pval_correction_dict = fdr_correction(pval_list)
-        pattern_file.write('#%d of %d peptides have %s at position 322\n' % (len(peptide_list), total_peptides, res322))
-        filtered_pattern_list = sorted_enrichment_list[:100]
-        final_pattern_list = []
-        for item in filtered_pattern_list:
-            pval = item[1][0]
-            # print(pval)
-            corrected_pval = pval_correction_dict[pval]
-            # print(corrected_pval)
-            if corrected_pval < 0.05 and item[1][2] >= tetrapeptide_count_threshold:
-                print('%s\t%6.2e\t%5.2f\t%d' % (item[0], corrected_pval, item[1][1], item[1][2]))
-                pattern_file.write('%s\t%s\t%6.2e\t%5.2f\t%d\n' % (
-                    truncated_filename, item[0], corrected_pval, item[1][1], item[1][2]))
-                final_pattern_list.append(item)
-
-        data_file.close()
+        with open(output_dir / pattern_filename, 'w') as pattern_file:
+            pattern_file.write(
+                '#%d of %d peptides have %s at position 322\n' % (len(peptide_list), total_peptides, res322))
+            filtered_pattern_list = sorted_enrichment_list[:100]
+            final_pattern_list = []
+            for item in filtered_pattern_list:
+                pval = item[1][0]
+                # print(pval)
+                corrected_pval = pval_correction_dict[pval]
+                # print(corrected_pval)
+                if corrected_pval < 0.05 and item[1][2] >= tetrapeptide_count_threshold:
+                    print('%s\t%6.2e\t%5.2f\t%d' % (item[0], corrected_pval, item[1][1], item[1][2]))
+                    pattern_file.write('%s\t%s\t%6.2e\t%5.2f\t%d\n' % (
+                        truncated_filename, item[0], corrected_pval, item[1][1], item[1][2]))
+                    final_pattern_list.append(item)
+        #
+        # data_file.close()
 
         # this section gives a score to each peptide for how well it matches the enriched patterns.
         # we use this score to help decide which peptide sequences to build and experimentally validate
@@ -385,10 +474,9 @@ else:
                 IC_scaled_residue_pos_prob_dict[res][pos + peptide_offset] = 0.0
 
         output_filename = truncated_filename + '_top_scores_322%s.txt' % res322
-        output_file = open(output_filename, 'w')
-
-        for item in sorted_peptide_score_list:  # [:100]:
-            # print('%s\t%5.2f' %(item[0], item[1]))
-            if item[1] > 0:
-                output_file.write('%s\t%5.2f\n' % (item[0], item[1]))
-        output_file.close()
+        with open(output_dir / output_filename, 'w') as output_file:
+            for item in sorted_peptide_score_list:  # [:100]:
+                # print('%s\t%5.2f' %(item[0], item[1]))
+                if item[1] > 0:
+                    output_file.write('%s\t%5.2f\n' % (item[0], item[1]))
+        # output_file.close()
