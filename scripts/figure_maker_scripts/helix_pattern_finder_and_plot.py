@@ -1,9 +1,19 @@
 # this script identifies enriched 4 residue motifs in selected Bxb1 helix sequences
 # this script also generates a plot from the 100 selected Bxb1 helix sequences that best match the enriched patterns
 # written by Jeff Miller for Sangamo Therapeutics
+"""This script can be invoked with the command similar to:
 
+        $  python helix_pattern_finder_and_plot.py /path/to/ExtD_FIGURE_2B_AAT_batch4_peptides_all.txt
+
+    where ExtD_FIGURE_2B_AAT_batch4_peptides_all.txt is an output from the script 'helix_selection_process.py'
+
+    The output files will be written to the subdirectory "output_data" in the same directory as the input file
+
+
+"""
 import math
 import sys
+from pathlib import Path
 
 import logomaker
 import matplotlib.pyplot as plt
@@ -89,24 +99,34 @@ def pattern_create(seq1, seq2):
     return pattern
 
 
-if len(sys.argv) < 2:
-    print('please give the input filename as a command line argument')
-else:
+if __name__ == "__main__":
+
+    if len(sys.argv) < 2:
+        raise ValueError('please give the input filename as a command line argument')
+
     read_threshold = 2
     tetrapeptide_count_threshold = 3
     data_filename = sys.argv[1]
-    truncated_filename = data_filename[:-4]
+    print(f"---Data file is {data_filename}")
+    data_file_path = Path(data_filename)
+    data_dir = data_file_path.parent
+    output_dir = data_dir / "output_data"
+    output_dir.mkdir(exist_ok=True)
+    print(f"-----------Output directory is {output_dir.resolve()}")
+
+    truncated_filename = data_file_path.name[:-4]
     all_peptide_list = []
     above_threshold_peptide_list = []
-    data_file = open(data_filename, 'r')
-    for raw_line in data_file:
-        line = raw_line.strip()
-        if line:
-            DNA, raw_DNA_count, peptide = line.split('\t')
-            DNA_count = int(raw_DNA_count)
-            all_peptide_list.append(peptide)
-            if DNA_count >= read_threshold:
-                above_threshold_peptide_list.append(peptide)
+    # data_file = open(data_filename, 'r')
+    with open(data_filename, 'r') as data_file:
+        for raw_line in data_file:
+            line = raw_line.strip()
+            if line:
+                DNA, raw_DNA_count, peptide = line.split('\t')
+                DNA_count = int(raw_DNA_count)
+                all_peptide_list.append(peptide)
+                if DNA_count >= read_threshold:
+                    above_threshold_peptide_list.append(peptide)
 
     all_peptide_dict = {}
     tetrapeptide_dict = {}
@@ -166,10 +186,10 @@ else:
                                             observed_tetrapeptide = tetrapeptide_dict[(pos1, pos2, pos3, pos4)][
                                                 tetrapeptide]
                                             expected_tetrapeptide = float(total_above_threshold_peptides) * (
-                                                        residue_frequency_dict[pos1][res1] *
-                                                        residue_frequency_dict[pos2][res2] *
-                                                        residue_frequency_dict[pos3][res3] *
-                                                        residue_frequency_dict[pos4][res4])
+                                                    residue_frequency_dict[pos1][res1] *
+                                                    residue_frequency_dict[pos2][res2] *
+                                                    residue_frequency_dict[pos3][res3] *
+                                                    residue_frequency_dict[pos4][res4])
                                             expected_fraction = (residue_frequency_dict[pos1][res1] *
                                                                  residue_frequency_dict[pos2][res2] *
                                                                  residue_frequency_dict[pos3][res3] *
@@ -182,8 +202,9 @@ else:
                                                 # print(pvalue)
                                                 enriched_tetramer_dict[formatted_tetrapeptide] = (pvalue, enrichment,
                                                                                                   tetrapeptide_dict[(
-                                                                                                  pos1, pos2, pos3,
-                                                                                                  pos4)][tetrapeptide])
+                                                                                                      pos1, pos2, pos3,
+                                                                                                      pos4)][
+                                                                                                      tetrapeptide])
     sorted_enrichment_list = sorted(enriched_tetramer_dict.items(), key=lambda x: x[1], reverse=False)
     pval_list = []
     for item in sorted_enrichment_list:
@@ -191,21 +212,22 @@ else:
         # print(item[1][0])
     pval_correction_dict = fdr_correction(pval_list)
     pattern_filename = truncated_filename + '_4res_patterns.txt'
-    pattern_file = open(pattern_filename, 'w')
+    # pattern_file = open(output_dir / pattern_filename, 'w')
     filtered_pattern_list = sorted_enrichment_list[:100]
     final_pattern_list = []
-    for item in filtered_pattern_list:
-        pval = item[1][0]
-        # print(pval)
-        corrected_pval = pval_correction_dict[pval]
-        # print(corrected_pval)
-        if corrected_pval < 0.05 and item[1][2] >= tetrapeptide_count_threshold:
-            # print('%s\t%6.2e\t%5.2f\t%d' %(item[0], corrected_pval, item[1][1], item[1][2]))
-            pattern_file.write(
-                '%s\t%s\t%6.2e\t%5.2f\t%d\n' % (truncated_filename, item[0], corrected_pval, item[1][1], item[1][2]))
-            final_pattern_list.append(item)
-
-    data_file.close()
+    with open(output_dir / pattern_filename, 'w') as pattern_file:
+        for item in filtered_pattern_list:
+            pval = item[1][0]
+            # print(pval)
+            corrected_pval = pval_correction_dict[pval]
+            # print(corrected_pval)
+            if corrected_pval < 0.05 and item[1][2] >= tetrapeptide_count_threshold:
+                # print('%s\t%6.2e\t%5.2f\t%d' %(item[0], corrected_pval, item[1][1], item[1][2]))
+                pattern_file.write(
+                    '%s\t%s\t%6.2e\t%5.2f\t%d\n' % (
+                    truncated_filename, item[0], corrected_pval, item[1][1], item[1][2]))
+                final_pattern_list.append(item)
+    # data_file.close()
     peptide_pattern_score_dict = {}
     for peptide in above_threshold_peptide_list:
         pattern_match_score = 0
@@ -293,4 +315,4 @@ else:
 
         ww_logo.ax.set_xlim([peptide_offset - 0.5, peptide_offset + peptide_length - 0.5])
         plot_filename = truncated_filename + '_pattern_matches.png'
-        plt.savefig(plot_filename)
+        plt.savefig(output_dir / plot_filename)
