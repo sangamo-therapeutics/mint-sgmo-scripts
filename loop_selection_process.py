@@ -173,7 +173,8 @@ else:
         seq = sorted_randomized_list[pos][0]
     filter_start = time.time()
     for pos1 in range(len(sorted_randomized_list)):
-        if 1:#sorted_randomized_list[pos1][1] > 50:
+        #if sorted_randomized_list[pos1][1] > 50:
+        if 1: #if this loop takes to long to run then replace with line above, but note that plots will not exactly match plots in the paper
             for pos2 in range(len(sorted_randomized_list)):
                 if pos2 > pos1:# and unique_dict[pos2] == 1:
                     read_count_ratio = sorted_randomized_list[pos1][1] / sorted_randomized_list[pos2][1]
@@ -187,7 +188,7 @@ else:
                     if mismatches < mismatch_threshold:
                         filtered = 0
                         unique_dict[pos2] = 0
-                        
+            
     for pos in range(len(sorted_randomized_list)):
         if unique_dict[pos] == 1:
             filtered_read_list.append(sorted_randomized_list[pos])
@@ -197,24 +198,6 @@ else:
 
     print('%d filtered reads' %len(filtered_read_list))
     print('%5.4f seconds for filtering' %(filter_end - filter_start))
-    peptide_dict = {} #list of each sequence read encoding a given peptide sequence- indexed by peptide sequence
-    ORF = 0
-    for item in filtered_read_list:
-        peptide = translate(item[0])
-
-    if peptide.find('.') == -1:
-            ORF += 1
-            if peptide not in peptide_dict:
-                peptide_dict[peptide] = [(item[0], item[1])]
-            else:
-                peptide_dict[peptide].append((item[0], item[1]))
-    peptide_list = list(peptide_dict.keys())
-    print('%d unique peptides' %len(peptide_list))
-    peptide_list_passing_readcount_threshold = []
-    for peptide in peptide_list:
-        if peptide_dict[peptide][0][1] >= read_count_threshold:
-            peptide_list_passing_readcount_threshold.append(peptide)
-    
     input_file.close()
     output_list = []
     output_peptide_dict = {}
