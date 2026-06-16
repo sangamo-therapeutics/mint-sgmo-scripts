@@ -281,10 +281,10 @@ else:
                                             observed_tetrapeptide = tetrapeptide_dict[(pos1, pos2, pos3, pos4)][
                                                 tetrapeptide]
                                             expected_tetrapeptide = float(total_peptides) * (
-                                                        residue_frequency_dict[pos1][res1] *
-                                                        residue_frequency_dict[pos2][res2] *
-                                                        residue_frequency_dict[pos3][res3] *
-                                                        residue_frequency_dict[pos4][res4])
+                                                    residue_frequency_dict[pos1][res1] *
+                                                    residue_frequency_dict[pos2][res2] *
+                                                    residue_frequency_dict[pos3][res3] *
+                                                    residue_frequency_dict[pos4][res4])
                                             expected_fraction = (residue_frequency_dict[pos1][res1] *
                                                                  residue_frequency_dict[pos2][res2] *
                                                                  residue_frequency_dict[pos3][res3] *
@@ -305,8 +305,9 @@ else:
                                                 # print(pvalue)
                                                 enriched_tetramer_dict[formatted_tetrapeptide] = (pvalue, enrichment,
                                                                                                   tetrapeptide_dict[(
-                                                                                                  pos1, pos2, pos3,
-                                                                                                  pos4)][tetrapeptide])
+                                                                                                      pos1, pos2, pos3,
+                                                                                                      pos4)][
+                                                                                                      tetrapeptide])
     sorted_enrichment_list = sorted(enriched_tetramer_dict.items(), key=lambda x: x[1], reverse=False)
     pval_list = []
     for item in sorted_enrichment_list:
