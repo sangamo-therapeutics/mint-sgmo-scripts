@@ -18,12 +18,13 @@
 
     THIS SCRIPT CAN TAKE SEVERAL HOURS IN NON-TESTING MODE
 
-    The output file will be written to the subdirectory "data_output" in the same directory as the fastq / fq file
+    The output file will be written to the subdirectory "figure_output" in the same directory as the fastq / fq file
+        or to the destination specified by a DEFAULT_FIGURE_OUT environment variable
 
 
 """
-
 import math
+import os
 import sys
 import time
 from itertools import combinations
@@ -129,11 +130,6 @@ def count_mismatches(seq1, seq2, mismatch_threshold):
     return mismatches
 
 
-#
-# if len(sys.argv) < 3:
-#     print('please use a command line arguments with the degenerate template sequence and the .fq input file name')
-# else:
-
 if __name__ == "__main__":
     if len(sys.argv) < 3:
         raise ValueError('please use a command line arguments with the degenerate template '
@@ -147,8 +143,14 @@ if __name__ == "__main__":
     input_path = Path(input_filename)
     data_location = Path(input_filename).parent
     print(f"-----------Data location is {data_location.resolve()}")
-    output_loc = data_location / "data_output"
+
+    default_outloc = os.getenv("DEFAULT_FIGURE_OUT")
+    if default_outloc:
+        output_loc = Path(default_outloc)
+    else:
+        output_loc = data_location / "figure_output"
     output_loc.mkdir(exist_ok=True)
+
     if len(sys.argv) > 3:  # for testing, this will limit the number of reads from the fastq
         try:
             testlimit = int(sys.argv[3])

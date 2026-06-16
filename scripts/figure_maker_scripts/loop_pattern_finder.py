@@ -9,12 +9,13 @@
 
     where ExtD_FIGURE_2C_AC_batch1_peptides_all.txt is an output from the script 'loop_selection_process.py'
 
-    The output file will be written to the subdirectory "output_data" in the same directory as the input file
+    The output file will be written to the subdirectory "figure_output" in the same directory as the input file
+        or to the destination specified by a DEFAULT_FIGURE_OUT environment variable
 
 
 """
-
 import math
+import os
 import sys
 from pathlib import Path
 
@@ -194,8 +195,14 @@ if __name__ == "__main__":
     print(f"---Data file is {data_filename}")
     peptide_list = []
     data_file_path = Path(data_filename)
-    output_dir = data_file_path.parent / "output_data"
+
+    default_outloc = os.getenv("DEFAULT_FIGURE_OUT")
+    if default_outloc:
+        output_dir = Path(default_outloc)
+    else:
+        output_dir = data_file_path.parent / "figure_output"
     output_dir.mkdir(exist_ok=True)
+
     print(f"-----------Output directory is {output_dir.resolve()}")
 
     truncated_filename = data_file_path.name[:-4]

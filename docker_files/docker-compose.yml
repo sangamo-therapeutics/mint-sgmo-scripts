@@ -25,6 +25,8 @@ services:
         environment:
             - HOST_UID=${HOST_UID}
             - HOST_GID=${HOST_GID}
+            - DEFAULT_FIGURE_IN=/figure_files
+            - DEFAULT_FIGURE_OUT=/figure_output
         image: $DOCKER_IMAGE
         networks:
             - mint-net
@@ -33,6 +35,8 @@ services:
             - $BOWTIE_INDEX_PATH:/seqdb/bowtie2
             - $FASTQ_READ_PATH:/fastq_reads
             - $ALIGNMENT_OUTPUT_PATH:/aligned
+            - $FIGURE_SCRIPTS_INPATH:/figure_data_in
+            - $FIGURE_SCRIPTS_OUTPATH:/figure_data_out
             - ${LOG_MOUNT:-/data/null}:/logs
             # LOG_MOUNT is to persist logs outside of container, optional
             - ${GIT_DIR:-/data/null}:/git

@@ -10,11 +10,12 @@
         $  python helix_selection_process.py /path/to/helix_library_template.txt \
                 /path/to/location/of/fq_file/ExtD_FIGURE_2C_AC_batch1b.fq
 
-    The output file will be written to the subdirectory "data_output" in the same directory as the fastq / fq file
+    The output file will be written to the subdirectory "figure_output" in the same directory as the fastq / fq file
+        or to the destination specified by a DEFAULT_FIGURE_OUT environment variable
 
 """
-
 import math
+import os
 import sys
 from pathlib import Path
 
@@ -140,7 +141,12 @@ if __name__ == "__main__":
     input_path = Path(input_filename)
     data_location = Path(input_filename).parent
     print(f"-----------Data location is {data_location.resolve()}")
-    output_loc = data_location / "data_output"
+
+    default_outloc = os.getenv("DEFAULT_FIGURE_OUT")
+    if default_outloc:
+        output_loc = Path(default_outloc)
+    else:
+        output_loc = data_location / "figure_output"
     output_loc.mkdir(exist_ok=True)
 
     ct = 0

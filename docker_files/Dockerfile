@@ -1,12 +1,37 @@
 ##########  BUILDING THE IMAGE:  ###########################################################################################
 #
+#  This file will automatically
+#  pull the codoe for the mint-sgmo-scripts and place them in a container
+#  with the necessary applications and environment to run the scripts. You
+#  will need the container to exist in an environment with access to an hg38 genome
+#  in fasta format or, preferrably, a bowtie2 index of the same genome.
+#
+#  To build the image:
+#  You must first configure the .env file for your local environment.  You will need to
+#  determine where on your local machine you will store input data (fastq reads) and where you
+#  want to write output data to.
+#  If in a unix/linux environment, you will also want to determine your numerical UID
+#  to ensure that permissions of files created are correct.
 
-#########  BUILDING THE IMAGE:  ###########################################################################################
+#  with the .env file in the same directory as the Dockerfile and docker-compose.yml
+#  issue the command:
 #
-#  It is intended to create a base, cacheable point for faster rebuilding of the nonclin webapps image(s)
-#    without modifing the underlyihg os or basic environment installations.
+#    $  docker compose build mint_environment
+#
+#  This may take a few minutes to construct the image but this only needs to be done once.
+#  Once build, you can launch the image with the command.
+#    $  docker compose run mint_environment
+#
+#  If successful, your container should launch and you will see a prompt similar to
+#
+#      root@3908bd0ca18a:/#
+#
+#  This indicates you are successfully operating in the container. The .env file should have
+#  mounted the external data in and data out locations for access within the container.
 #
 #
+#  All scripts are located within the directory /scripts
+#  Please see the README for details on operating your scripts.
 
 FROM python:3.11-slim-bookworm
 USER root
@@ -39,16 +64,18 @@ RUN apt-get update \
 #    && ln -s /opt/bowtie2-${BOWTIE2_VERSION}-linux-x86_64/bowtie2 /usr/local/bin \
 #    && ln -s /opt/bowtie2-${BOWTIE2_VERSION}-linux-x86_64/bowtie2-build /usr/local/bin
 
+ARG BRANCH
 
 RUN git clone --depth 1 https://github.com/sangamo-therapeutics/mint-sgmo-scripts.git /source_packages/mint-scripts  \
-    --branch main
-#    --branch ${BRANCH}
+    --branch ${BRANCH}
 
 RUN mkdir -p /seqdb/bowtie2 /fastq_reads/aligned
 
 RUN pip install pandas matplotlib logomaker
 RUN pip install cutadapt python-levenshtein
 RUN pip install pybedtools
+RUN pip install logomaker scipy==1.13.1
+RUN pip install biopython==1.85
 
 # sets local timezone
 ENV TZ="America/Los_Angeles"

@@ -7,11 +7,13 @@
 
     where ExtD_FIGURE_2B_AAT_batch4_peptides_all.txt is an output from the script 'helix_selection_process.py'
 
-    The output files will be written to the subdirectory "output_data" in the same directory as the input file
+    The output files will be written to the subdirectory "figure_output" in the same directory as the input file
+        or to the destination specified by a DEFAULT_FIGURE_OUT environment variable
 
 
 """
 import math
+import os
 import sys
 from pathlib import Path
 
@@ -110,8 +112,14 @@ if __name__ == "__main__":
     print(f"---Data file is {data_filename}")
     data_file_path = Path(data_filename)
     data_dir = data_file_path.parent
-    output_dir = data_dir / "output_data"
-    output_dir.mkdir(exist_ok=True)
+
+    default_outloc = os.getenv("DEFAULT_FIGURE_OUT")
+    if default_outloc:
+        output_dir = Path(default_outloc)
+    else:
+        output_dir = data_dir / "figure_output"
+        output_dir.mkdir(exist_ok=True)
+
     print(f"-----------Output directory is {output_dir.resolve()}")
 
     truncated_filename = data_file_path.name[:-4]
@@ -225,7 +233,7 @@ if __name__ == "__main__":
                 # print('%s\t%6.2e\t%5.2f\t%d' %(item[0], corrected_pval, item[1][1], item[1][2]))
                 pattern_file.write(
                     '%s\t%s\t%6.2e\t%5.2f\t%d\n' % (
-                    truncated_filename, item[0], corrected_pval, item[1][1], item[1][2]))
+                        truncated_filename, item[0], corrected_pval, item[1][1], item[1][2]))
                 final_pattern_list.append(item)
     # data_file.close()
     peptide_pattern_score_dict = {}

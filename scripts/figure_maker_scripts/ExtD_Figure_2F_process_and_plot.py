@@ -16,10 +16,12 @@
     ExtD_FIGURE_2F_YRGSLP_fq_files.txt
 
     The output .pdf containing the figure will be written to a subdirectory "figure_output"
+        or to the destination specified by a DEFAULT_FIGURE_OUT environment variable
+
 
 """
-
 import math
+import os
 import sys
 from pathlib import Path
 
@@ -81,7 +83,12 @@ if __name__ == "__main__":
         print(f"------We will use the default data location {data_location}")
     data_location = Path(data_location)
     print(f"-----------Data location is {data_location.resolve()}")
-    output_loc = data_location / "figure_output"
+
+    default_outloc = os.getenv("DEFAULT_FIGURE_OUT")
+    if default_outloc:
+        output_loc = Path(default_outloc)
+    else:
+        output_loc = data_location / "figure_output"
     output_loc.mkdir(exist_ok=True)
     print(f"--------------Output will be written in {output_loc.resolve()}")
 

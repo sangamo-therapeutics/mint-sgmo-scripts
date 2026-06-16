@@ -14,12 +14,14 @@
     The directory containing this file must also contain a ...peptides.txt file for the
      e.g. ExtD_FIGURE_2C_AC_batch1.txt
 
-    The output file will be written to the subdirectory "output_data" in the same directory as the input file
+    The output file will be written to the subdirectory "figure_output" in the same directory as the input file
+        or to the destination specified by a DEFAULT_FIGURE_OUT environment variable
 
 
 """
 
 import math
+import os
 import sys
 from pathlib import Path
 
@@ -72,9 +74,15 @@ if __name__ == "__main__":
     print(f"---Data file is {data_filename}")
     data_file_path = Path(data_filename)
     data_dir = data_file_path.parent
-    output_dir = data_dir / "output_data"
-    output_dir.mkdir(exist_ok=True)
-    print(f"-----------Output directory is {output_dir.resolve()}")
+
+    default_outloc = os.getenv("DEFAULT_FIGURE_OUT")
+    if default_outloc:
+        output_loc = Path(default_outloc)
+    else:
+        output_loc = data_dir / "figure_output"
+    output_loc.mkdir(exist_ok=True)
+
+    print(f"-----------Output directory is {output_loc.resolve()}")
 
     truncated_filename = data_file_path.name[:-18]
     peptide_filename = truncated_filename + '.txt'
@@ -146,7 +154,7 @@ if __name__ == "__main__":
             motif_filename = truncated_filename + '_motif%d.txt' % output_motif_num
             # motif_file = open(motif_filename, 'w')
 
-            with open(output_dir / motif_filename, 'w') as motif_file:
+            with open(output_loc / motif_filename, 'w') as motif_file:
                 for item in motif_dict[motif_pos]:
                     print('%d\t%s\t%5.2e' % (item, sorted_pattern_list[item][0], sorted_pattern_list[item][1]))
                     motif_file.write(
@@ -234,7 +242,7 @@ if __name__ == "__main__":
 
             ww_logo.ax.set_xlim([peptide_offset - 0.5, peptide_offset + peptide_length - 0.5])
 
-            plt.savefig(output_dir / plot_filename)
+            plt.savefig(output_loc / plot_filename)
             # motif_file.close()
 
         motif_pos += 1

@@ -59,16 +59,16 @@ Generating the plots is a two step process where:
 
     $  python helix_selection_processing.py helix_library_template.txt ExtD_FIGURE_2B_AAT_batch4.fq
 
-The output file will be written in the subdirectory "data_output" in the same directory as the fastq / fq file
+The output file will be written in the subdirectory "figure_output" in the same directory as the fastq / fq file
 
 This output can be used in step 2.
 
 #### usage: 
 
     $ python helix_pattern_finder_and_plot.py \ 
-        /path/to/data_output/ExtD_FIGURE_2B_AAT_batch4_peptides_all.txt
+        /path/to/figure_output/ExtD_FIGURE_2B_AAT_batch4_peptides_all.txt
 
-The output text and graph image will be written in the subdirectory "output_data" in the same directory as input file
+The output text and graph image will be written in the subdirectory "figure_output" in the same directory as input file
 
 
 ## Extended Data Figure 2C:
@@ -96,7 +96,7 @@ plot for TC represents motif 2, and the plot for TT represents all pattern match
     $  python loop_selection_process.py /path/to/loop_library_template.txt \
             /path/to/location/of/fq_file/ExtD_FIGURE_2C_AC_batch1b.fq
 
-The output file will be written in the subdirectory "data_output" in the same directory as the fastq / fq file
+The output file will be written in the subdirectory "figure_output" in the same directory as the fastq / fq file
 
 for testing, an optional argument specifying a read limit can be added e.g.
 
@@ -109,14 +109,14 @@ This output can be used in step 2.
 
 #### usage (step 2): 
 
-    $ python loop_pattern_finder.py /path/to/data_output/ExtD_FIGURE_2C_AC_batch1_peptides_all.txt
+    $ python loop_pattern_finder.py /path/to/figure_output/ExtD_FIGURE_2C_AC_batch1_peptides_all.txt
 
 This output will be used in step 3.
 
 #### usage (step 3): 
 
     $  loop_pattern_sort_and_plot.py \
-        /path/to/data_output/ExtD_FIGURE_2C_AC_batch1b_peptides_all_4res_patterns.txt
+        /path/to/figure_output/ExtD_FIGURE_2C_AC_batch1b_peptides_all_4res_patterns.txt
 
 ## Extended Data Figure 2D:
 
@@ -144,7 +144,7 @@ from their respective sample
           /path/to/hairpin_library_template.txt \
           /path/to/ExtD_FIGURE_2D_chr1_25477444L_GCCCCTTC_batch4.fq
 
-The output file will be written in the subdirectory "data_output" in the same directory as the fastq / fq file
+The output file will be written in the subdirectory "figure_output" in the same directory as the fastq / fq file
 
 
 for testing, an optional argument specifying a read limit can be added e.g.
@@ -160,13 +160,13 @@ This output can be used in step 2.
 
 #### usage (step 2): 
     $  python hairpin_pattern_finder.py \
-        /path/to/data_output/ExtD_FIGURE_2D_chr1_25477444L_GCCCCTTC_batch4_peptides_all.txt
+        /path/to/figure_output/ExtD_FIGURE_2D_chr1_25477444L_GCCCCTTC_batch4_peptides_all.txt
 
 This output can be used in step 3.
 
 #### usage (step 3): 
     $ python hairpin_pattern_sort_and_plot.py \
-      /path/to//data_output/ExtD_FIGURE_2D_chr1_25477444L_GCCCCTTC_batch4_peptides_all_4res_patterns.txt
+      /path/to//figure_output/ExtD_FIGURE_2D_chr1_25477444L_GCCCCTTC_batch4_peptides_all_4res_patterns.txt
 
 ## Extended Data Figure 2F:
 

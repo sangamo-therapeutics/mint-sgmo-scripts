@@ -3,6 +3,7 @@
 # output is a plot of the sequences that best match the enriched patters and a file of all enriched patterns that were identified
 # written by Jeff Miller for Sangamo Therapeutics
 import math
+import os
 import sys
 from itertools import combinations, combinations_with_replacement
 from pathlib import Path
@@ -16,7 +17,8 @@ from scipy.stats import binomtest
 
     where ExtD_FIGURE_2D_chr1_25477444L_GCCCCTTC_batch4_peptides_all.txt is an output from the script 'hairpin_selection_process.py'
 
-    The output files will be written to the subdirectory "output_data" in the same directory as the input file
+    The output files will be written to the subdirectory "figure_output" in the same directory as the input file
+        or to the destination specified by a DEFAULT_FIGURE_OUT environment variable
 
 
 """
@@ -206,8 +208,16 @@ if __name__ == "__main__":
     print(f"---Data file is {data_filename}")
     truncated_filename = data_file_path.name[:-4]
 
-    output_dir = data_file_path.parent / "output_data"
+    output_dir = data_file_path.parent / "figure_output"
+
+    default_outloc = os.getenv("DEFAULT_FIGURE_OUT")
+    if default_outloc:
+        output_dir = Path(default_outloc)
+    else:
+        output_dir = data_file_path.parent / "figure_output"
+
     output_dir.mkdir(exist_ok=True)
+
     print(f"-----------Output directory is {output_dir.resolve()}")
 
     pattern_filename = truncated_filename + '_4res_patterns.txt'

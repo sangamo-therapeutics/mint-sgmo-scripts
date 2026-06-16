@@ -1,4 +1,22 @@
+# this script identifies motifs in a list of enriched patterns from a bxb1 loop selection
+# input is a sorted list of enriched 4 residue patterns
+# output is a plot of the sequences that best match the enriched patters in each motif as well as details about each motif
+# written by Jeff Miller for Sangamo Therapeutics
+
+"""This script can be invoked with the command similar to:
+
+        $  python hairpin_pattern_sort_and_plot.py /path/to/ExtD_FIGURE_2D_chr1_25477444L_GCCCCTTC_batch4_peptides_all_4res_patterns.txt
+
+    where ExtD_FIGURE_2D_chr1_25477444L_GCCCCTTC_batch4_peptides_all_4res_patterns.txt is an output from the script 'hairpin_selection_process.py'
+
+    The output file will be written to the subdirectory "figure_output" in the same directory as the input file
+        or to the destination specified by a DEFAULT_FIGURE_OUT environment variable
+
+
+"""
+
 import math
+import os
 import sys
 from pathlib import Path
 
@@ -53,19 +71,26 @@ if __name__ == "__main__":
     # local_dir = Path(__file__).parent / "input_text_files"
     # data_name = r"ExtD_FIGURE_2D_chr1_25477444L_GCCCCTTC_batch4_peptides_all_4res_patterns.txt"
     # data_filename = local_dir / data_name
-    assert data_filename.exists()
+    assert Path(data_filename.exists())
     print(f"---Data file is {data_filename}")
     data_file_path = Path(data_filename)
-    data_dir = data_file_path.parent
-    output_dir = data_dir / "output_data"
-    output_dir.mkdir(exist_ok=True)
-    print(f"-----------Output directory is {output_dir.resolve()}")
+    data_location = data_file_path.parent
+
+    default_outloc = os.getenv("DEFAULT_FIGURE_OUT")
+    if default_outloc:
+        output_loc = Path(default_outloc)
+    else:
+        output_loc = data_location / "figure_output"
+    output_loc.mkdir(exist_ok=True)
+
+    output_loc.mkdir(exist_ok=True)
+    print(f"-----------Output directory is {output_loc.resolve()}")
 
     truncated_filename = data_file_path.name[:-18]
 
     peptide_filename = truncated_filename + '.txt'
     # peptide_file = open( data_dir  / peptide_filename, 'r')
-    with open(data_dir / peptide_filename, 'r') as peptide_file:
+    with open(data_location / peptide_filename, 'r') as peptide_file:
         for raw_line in peptide_file:
             line = raw_line.strip()
             DNA, raw_count, peptide = line.split()
@@ -76,7 +101,7 @@ if __name__ == "__main__":
     print(len(peptide_list))
     print(truncated_filename)
     # data_file = open(data_filename, 'r')
-    with open(data_dir / data_filename, 'r') as data_file:
+    with open(data_location / data_filename, 'r') as data_file:
         for raw_line in data_file:
             line = raw_line.strip()
             if line and line[0] != '#':
@@ -133,7 +158,7 @@ if __name__ == "__main__":
     while motif_pos < motif_count:
         if len(motif_dict[motif_pos]) >= 5:
             motif_filename = truncated_filename + '_motif%d.txt' % output_motif_num
-            motif_file = open(output_dir / motif_filename, 'w')
+            motif_file = open(output_loc / motif_filename, 'w')
             for item in motif_dict[motif_pos]:
                 print('%d\t%s\t%5.2e' % (item, sorted_pattern_list[item][0], sorted_pattern_list[item][1]))
                 motif_file.write('%d\t%s\t%5.2e\n' % (item, sorted_pattern_list[item][0], sorted_pattern_list[item][1]))
@@ -257,7 +282,7 @@ if __name__ == "__main__":
 
             ww_logo.ax.set_xlim([peptide_offset - 0.5, peptide_offset + peptide_length - 0.5])
 
-            plt.savefig(output_dir / plot_filename)
+            plt.savefig(output_loc / plot_filename)
             motif_file.close()
 
         motif_pos += 1

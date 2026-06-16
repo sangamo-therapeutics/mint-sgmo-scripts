@@ -17,16 +17,18 @@
 
     THIS SCRIPT MAY TAKE SOME TIME IN NON-TESTING MODE
 
-    The output file will be written to the subdirectory "data_output" in the same directory as the fastq / fq file
+    The output file will be written to the subdirectory "figure_output" in the same directory as the fastq / fq file
+        or to the destination specified by a DEFAULT_FIGURE_OUT environment variable
 
 
 """
-from tqdm import tqdm
-
 import math
+import os
 import sys
-from pathlib import Path
 from itertools import combinations
+from pathlib import Path
+
+from tqdm import tqdm
 
 residue_list = ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y']
 BASES = ['A', 'C', 'G', 'T']
@@ -149,8 +151,13 @@ if __name__ == "__main__":
     data_location = Path(input_filename).parent
     print(f"-----------Data location is {data_location.resolve()}")
 
-    output_loc = data_location / "data_output"
+    default_outloc = os.getenv("DEFAULT_FIGURE_OUT")
+    if default_outloc:
+        output_loc = Path(default_outloc)
+    else:
+        output_loc = data_location / "figure_output"
     output_loc.mkdir(exist_ok=True)
+
     if len(sys.argv) > 3:  # for testing, this will limit the number of reads from the fastq
         try:
             testlimit = int(sys.argv[3])
@@ -225,7 +232,8 @@ if __name__ == "__main__":
                     else:
                         seq = line
                     if seq[:len(constant_5p)] == constant_5p and seq[
-                                                                 -len(constant_3p):] == constant_3p:  # only process files where constant region matches expectations
+                                                                 -len(
+                                                                     constant_3p):] == constant_3p:  # only process files where constant region matches expectations
                         randomized_region = seq[len(constant_5p):len(constant_5p) + randomized_size]
                         if check_randomized_region(randomized_template_region,
                                                    randomized_region) == 1:  # checks randomized region to make sure it matches intended randomization scheme
@@ -271,7 +279,6 @@ if __name__ == "__main__":
             if mismatches < mismatch_threshold:
                 unique_dict[pos2] = 0
 
-
     # for pos1 in tqdm(range(len(above_threshold_read_list)), desc="Comparing reads", total=combos):
     #     if above_threshold_read_list[pos1][1] > 50:
     #         for pos2 in range(len(above_threshold_read_list)):
@@ -310,7 +317,8 @@ if __name__ == "__main__":
             peptide_list_passing_readcount_threshold.append(peptide)
     pct_ORF = 100.0 * float(ORF) / float(len(filtered_read_list))
     print('%s\t%d\t%d\t%d\t%d\t%d\t%5.2f' % (
-    input_filename, total, constant_region_correct, len(sorted_randomized_list), len(filtered_read_list), ORF, pct_ORF))
+        input_filename, total, constant_region_correct, len(sorted_randomized_list), len(filtered_read_list), ORF,
+        pct_ORF))
     input_file.close()
     output_list = []
     output_peptide_dict = {}
@@ -328,4 +336,3 @@ if __name__ == "__main__":
             output_line = '%s\t%d\t%s\n' % (item[0], item[1], item[2])
             output_all_file.write(output_line)
             sorted_peptide_list.append(item[2])
-
