@@ -3,13 +3,30 @@
 # output is a plot of the sequences that best match the enriched patters in each motif as well as details about each motif
 # written by Jeff Miller for Sangamo Therapeutics
 
+"""This script can be invoked with the command similar to:
+
+        $  python loop_pattern_sort_and_plot.py /path/to/ExtD_FIGURE_2C_AC_batch1_peptides_all_4res_patterns.txt
+
+
+
+    where ExtD_FIGURE_2C_AC_batch1_peptides_all_4res_patterns.txt is an output from the script 'loop_selection_process.py'
+
+    The directory containing this file must also contain a ...peptides.txt file for the
+     e.g. ExtD_FIGURE_2C_AC_batch1.txt
+
+    The output file will be written to the subdirectory "output_data" in the same directory as the input file
+
+
+"""
+
 import math
 import sys
+from pathlib import Path
 
 import logomaker
 import matplotlib.pyplot as plt
 import pandas as pd
-from pathlib import Path
+
 residue_list = ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y']
 
 
@@ -43,30 +60,40 @@ def IC(residue_frequency_dict, pos):
     return IC_value
 
 
-if len(sys.argv) < 2:
-    print('please give the input filename as a command line argument')
-else:
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        raise ValueError('please give the input filename as a command line argument')
+
     peptide_length = 6
     peptide_offset = 154
     peptide_list = []
     pattern_list = []
     data_filename = sys.argv[1]
-    truncated_filename = data_filename[:-18]
+    print(f"---Data file is {data_filename}")
+    data_file_path = Path(data_filename)
+    data_dir = data_file_path.parent
+    output_dir = data_dir / "output_data"
+    output_dir.mkdir(exist_ok=True)
+    print(f"-----------Output directory is {output_dir.resolve()}")
+
+    truncated_filename = data_file_path.name[:-18]
     peptide_filename = truncated_filename + '.txt'
-    peptide_file = open(peptide_filename, 'r')
-    for raw_line in peptide_file:
-        line = raw_line.strip()
-        DNA, raw_count, peptide = line.split()
-        peptide_list.append(peptide)
+    with open(data_dir / peptide_filename, 'r') as peptide_file:
+        for raw_line in peptide_file:
+            line = raw_line.strip()
+            DNA, raw_count, peptide = line.split()
+            peptide_list.append(peptide)
     print(len(peptide_list))
     print(truncated_filename)
-    data_file = open(data_filename, 'r')
-    for raw_line in data_file:
-        line = raw_line.strip()
-        if line and line[0] != '#':
-            pattern_filename, pattern, raw_pval, raw_enrich, raw_count = line.split()
-            pval = float(raw_pval)
-            pattern_list.append((pattern, pval))
+    # data_file = open(data_filename, 'r')
+    with open(data_filename, 'r') as data_file:
+        for raw_line in data_file:
+            line = raw_line.strip()
+            if line and line[0] != '#':
+                pattern_filename, pattern, raw_pval, raw_enrich, raw_count = line.split()
+                pval = float(raw_pval)
+                pattern_list.append((pattern, pval))
+
     sorted_pattern_list = sorted(pattern_list, key=lambda x: x[1], reverse=False)
 
     in_motif_list = []
@@ -117,24 +144,27 @@ else:
     while motif_pos < motif_count:
         if len(motif_dict[motif_pos]) >= 5:
             motif_filename = truncated_filename + '_motif%d.txt' % output_motif_num
-            motif_file = open(motif_filename, 'w')
-            for item in motif_dict[motif_pos]:
-                print('%d\t%s\t%5.2e' % (item, sorted_pattern_list[item][0], sorted_pattern_list[item][1]))
-                motif_file.write('%d\t%s\t%5.2e\n' % (item, sorted_pattern_list[item][0], sorted_pattern_list[item][1]))
-            print()
-            plot_filename = truncated_filename + '_motif%d.png' % output_motif_num
+            # motif_file = open(motif_filename, 'w')
 
-            output_motif_num += 1
-            motif_peptides = []
-            for peptide in peptide_list:
-                include_in_motif_list = 0
+            with open(output_dir / motif_filename, 'w') as motif_file:
                 for item in motif_dict[motif_pos]:
-                    if pattern_match(peptide, sorted_pattern_list[item][0]) == 1:
-                        include_in_motif_list = 1
-                        # print('%s\t%s' %(peptide, sorted_pattern_list[item][0]))
-                if include_in_motif_list == 1:
-                    motif_peptides.append(peptide)
-                    motif_file.write('%s\n' % peptide)
+                    print('%d\t%s\t%5.2e' % (item, sorted_pattern_list[item][0], sorted_pattern_list[item][1]))
+                    motif_file.write(
+                        '%d\t%s\t%5.2e\n' % (item, sorted_pattern_list[item][0], sorted_pattern_list[item][1]))
+                print()
+                plot_filename = truncated_filename + '_motif%d.png' % output_motif_num
+
+                output_motif_num += 1
+                motif_peptides = []
+                for peptide in peptide_list:
+                    include_in_motif_list = 0
+                    for item in motif_dict[motif_pos]:
+                        if pattern_match(peptide, sorted_pattern_list[item][0]) == 1:
+                            include_in_motif_list = 1
+                            # print('%s\t%s' %(peptide, sorted_pattern_list[item][0]))
+                    if include_in_motif_list == 1:
+                        motif_peptides.append(peptide)
+                        motif_file.write('%s\n' % peptide)
             print(len(motif_peptides))
             residue_pos_dict = {}
             residue_pos_prob_dict = {}
@@ -204,7 +234,7 @@ else:
 
             ww_logo.ax.set_xlim([peptide_offset - 0.5, peptide_offset + peptide_length - 0.5])
 
-            plt.savefig(plot_filename)
-            motif_file.close()
+            plt.savefig(output_dir / plot_filename)
+            # motif_file.close()
 
         motif_pos += 1

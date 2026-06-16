@@ -3,6 +3,18 @@
 # output is a plot of the sequences that best match the enriched patters and a file of all enriched patterns that were identified
 # written by Jeff Miller for Sangamo Therapeutics
 
+"""This script can be invoked with the command similar to:
+
+        $  python loop_pattern_finder.py /path/to/ExtD_FIGURE_2C_AC_batch1_peptides_all.txt
+
+    where ExtD_FIGURE_2C_AC_batch1_peptides_all.txt is an output from the script 'loop_selection_process.py'
+
+    The output file will be written to the subdirectory "output_data" in the same directory as the input file
+
+
+"""
+
+
 import math
 import sys
 from pathlib import Path
@@ -183,7 +195,8 @@ if __name__ == "__main__":
     print(f"---Data file is {data_filename}")
     peptide_list = []
     data_file_path = Path(data_filename)
-    output_dir = data_file_path.parent
+    output_dir = data_file_path.parent / "output_data"
+    output_dir.mkdir(exist_ok=True)
     print(f"-----------Output directory is {output_dir.resolve()}")
 
     truncated_filename = data_file_path.name[:-4]
@@ -434,7 +447,6 @@ if __name__ == "__main__":
                         fontsize=9)
         ww_logo.ax.set_xlim([peptide_offset - 0.5, peptide_offset + peptide_length - 0.5])
         plot_filename = truncated_filename + '_pattern_match.png'
-        output_dir = data_file_path.parent
         plt.savefig(output_dir / plot_filename)
     else:
         print('no peptides match criteria for plotting')
