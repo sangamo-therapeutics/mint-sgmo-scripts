@@ -115,12 +115,13 @@ if __name__ == "__main__":
 
     default_outloc = os.getenv("DEFAULT_FIGURE_OUT")
     if default_outloc:
-        output_dir = Path(default_outloc)
+        output_loc = Path(default_outloc)
     else:
-        output_dir = data_dir / "figure_output"
-        output_dir.mkdir(exist_ok=True)
-
-    print(f"-----------Output directory is {output_dir.resolve()}")
+        output_loc = data_dir / "figure_output"
+        output_loc.mkdir(exist_ok=True)
+    prior_files = output_loc.glob("*.*")
+    prior_files = set(prior_files)
+    print(f"-----------Output directory is {output_loc.resolve()}")
 
     truncated_filename = data_file_path.name[:-4]
     all_peptide_list = []
@@ -223,7 +224,7 @@ if __name__ == "__main__":
     # pattern_file = open(output_dir / pattern_filename, 'w')
     filtered_pattern_list = sorted_enrichment_list[:100]
     final_pattern_list = []
-    with open(output_dir / pattern_filename, 'w') as pattern_file:
+    with open(output_loc / pattern_filename, 'w') as pattern_file:
         for item in filtered_pattern_list:
             pval = item[1][0]
             # print(pval)
@@ -323,4 +324,15 @@ if __name__ == "__main__":
 
         ww_logo.ax.set_xlim([peptide_offset - 0.5, peptide_offset + peptide_length - 0.5])
         plot_filename = truncated_filename + '_pattern_matches.png'
-        plt.savefig(output_dir / plot_filename)
+        plt.savefig(output_loc / plot_filename)
+    
+    if os.getenv("HOST_UID"):
+        try:
+            from minter.mint_utils import set_newfile_permissions
+
+            uid = os.getenv("HOST_UID")
+            set_newfile_permissions(output_loc, prior_files=prior_files, host_uid=os.getenv("HOST_UID"))
+        except (ImportError, ModuleNotFoundError):
+            pass
+        except Exception as e:
+            print("Unable to change permissions on output files; with luck, this does not make a difference")

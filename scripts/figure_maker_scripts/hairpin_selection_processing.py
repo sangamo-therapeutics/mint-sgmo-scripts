@@ -157,7 +157,8 @@ if __name__ == "__main__":
     else:
         output_loc = data_location / "figure_output"
     output_loc.mkdir(exist_ok=True)
-
+    prior_files = output_loc.glob("*.*")
+    prior_files = set(prior_files)
     if len(sys.argv) > 3:  # for testing, this will limit the number of reads from the fastq
         try:
             testlimit = int(sys.argv[3])
@@ -336,3 +337,14 @@ if __name__ == "__main__":
             output_line = '%s\t%d\t%s\n' % (item[0], item[1], item[2])
             output_all_file.write(output_line)
             sorted_peptide_list.append(item[2])
+    
+    if os.getenv("HOST_UID"):
+        try:
+            from minter.mint_utils import set_newfile_permissions
+
+            uid = os.getenv("HOST_UID")
+            set_newfile_permissions(output_loc, prior_files=prior_files, host_uid=os.getenv("HOST_UID"))
+        except (ImportError, ModuleNotFoundError):
+            pass
+        except Exception as e:
+            print("Unable to change permissions on output files; with luck, this does not make a difference")

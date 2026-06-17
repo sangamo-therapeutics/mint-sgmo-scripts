@@ -1,0 +1,65 @@
+# from dockerfiles -- for installation within a container
+
+[tool.poetry]
+name = "mint-sgmo-scripts"
+version = "0.1.0"
+description = ""
+packages = [
+    { include = "minter", from = "src" },
+]
+
+[tool.poetry.dependencies]
+
+python = "^3.9"
+biopython = "1.85"
+Levenshtein = "0.27.1"
+logomaker = "0.8"
+matplotlib = "3.5.3"
+pandas = "*"
+scipy="1.13.1"
+
+#[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.4"
+
+
+[build-system]
+requires = ["poetry-core>=1.0.0", "setuptools>=57.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.ruff.lint]
+select = ["A", "ASYNC", "B", "C4", "C90", "E4", "E7", "E9", "F", "FURB", "I", "N", "NPY",
+    "PD", "PL", "RET", "RUF", "SIM", "UP"]
+
+ignore = [
+    "B905", # explicit strict= in zip is causing error in py3.9 without from __future__
+    "E731", # LAMBDAs are useful!
+    "I001", # sorting of imports do this with ...?
+    "N818", # Exceptions names '<some>Exception' instead of '<some>Error'
+    "N999", # Module name rules
+    "PD002",  # inplace=True is sometimes proper behavior!
+    "PD010", # pandas in pivot
+    "PD011", # 'values' and to_numpy() aren't always synonyms
+    "PLR2004", # magic number issue
+    "PLW0108",  # allow lambdas!!
+    "PLW2901", # sometimes overwriting a loop variable is fine!
+    "RET504", # assignment before return
+    "RUF007", # itertools.pairwise() is NOT always same as zip
+    "SIM103", # return automatically -- explicit variable assignment is useful for debugging!
+    "SIM118", # in dict and in dict.keys() not always synonymous
+    "UP007", #  | for type annotations from future instead of Union[type1, type2]
+    "UP008", #  super() instead of super class self
+    "UP015", # redundant open modes e.g. open('filename.txt', 'r') instead of open('filename')
+    "UP045", #  | for type annotations from future instead of Union[type1, type2]
+]
+
+
+
+[tool.ruff.lint.pylint]
+max-args = 10
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = [
+    "PLC0415", # imports not at top
+    "N816",
+    "F841", # mock variables assigned but not used
+]

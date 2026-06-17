@@ -81,7 +81,8 @@ if __name__ == "__main__":
     else:
         output_loc = data_dir / "figure_output"
     output_loc.mkdir(exist_ok=True)
-
+    prior_files = output_loc.glob("*.*")
+    prior_files = set(prior_files)
     print(f"-----------Output directory is {output_loc.resolve()}")
 
     truncated_filename = data_file_path.name[:-18]
@@ -246,3 +247,14 @@ if __name__ == "__main__":
             # motif_file.close()
 
         motif_pos += 1
+
+    if os.getenv("HOST_UID"):
+        try:
+            from minter.mint_utils import set_newfile_permissions
+
+            uid = os.getenv("HOST_UID")
+            set_newfile_permissions(output_loc, prior_files=prior_files, host_uid=os.getenv("HOST_UID"))
+        except (ImportError, ModuleNotFoundError):
+            pass
+        except Exception as e:
+            print("Unable to change permissions on output files; with luck, this does not make a difference")

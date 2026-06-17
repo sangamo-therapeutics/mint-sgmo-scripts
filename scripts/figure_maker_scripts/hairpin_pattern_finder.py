@@ -208,17 +208,19 @@ if __name__ == "__main__":
     print(f"---Data file is {data_filename}")
     truncated_filename = data_file_path.name[:-4]
 
-    output_dir = data_file_path.parent / "figure_output"
+    output_loc = data_file_path.parent / "figure_output"
 
     default_outloc = os.getenv("DEFAULT_FIGURE_OUT")
     if default_outloc:
-        output_dir = Path(default_outloc)
+        output_loc = Path(default_outloc)
     else:
-        output_dir = data_file_path.parent / "figure_output"
+        output_loc = data_file_path.parent / "figure_output"
 
-    output_dir.mkdir(exist_ok=True)
+    output_loc.mkdir(exist_ok=True)
 
-    print(f"-----------Output directory is {output_dir.resolve()}")
+    prior_files = output_loc.glob("*.*")
+    prior_files = set(prior_files)
+    print(f"-----------Output directory is {output_loc.resolve()}")
 
     pattern_filename = truncated_filename + '_4res_patterns.txt'
     # pattern_file = open(pattern_filename, 'w')
@@ -439,7 +441,7 @@ if __name__ == "__main__":
             pval_list.append(item[1][0])
             # print(item[1][0])
         pval_correction_dict = fdr_correction(pval_list)
-        with open(output_dir / pattern_filename, 'w') as pattern_file:
+        with open(output_loc / pattern_filename, 'w') as pattern_file:
             pattern_file.write(
                 '#%d of %d peptides have %s at position 322\n' % (len(peptide_list), total_peptides, res322))
             filtered_pattern_list = sorted_enrichment_list[:100]
@@ -484,9 +486,20 @@ if __name__ == "__main__":
                 IC_scaled_residue_pos_prob_dict[res][pos + peptide_offset] = 0.0
 
         output_filename = truncated_filename + '_top_scores_322%s.txt' % res322
-        with open(output_dir / output_filename, 'w') as output_file:
+        with open(output_loc / output_filename, 'w') as output_file:
             for item in sorted_peptide_score_list:  # [:100]:
                 # print('%s\t%5.2f' %(item[0], item[1]))
                 if item[1] > 0:
                     output_file.write('%s\t%5.2f\n' % (item[0], item[1]))
         # output_file.close()
+
+    if os.getenv("HOST_UID"):
+        try:
+            from minter.mint_utils import set_newfile_permissions
+
+            uid = os.getenv("HOST_UID")
+            set_newfile_permissions(output_loc, prior_files=prior_files, host_uid=os.getenv("HOST_UID"))
+        except (ImportError, ModuleNotFoundError):
+            pass
+        except Exception as e:
+            print("Unable to change permissions on output files; with luck, this does not make a difference")

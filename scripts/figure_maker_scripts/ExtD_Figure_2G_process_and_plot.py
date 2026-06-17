@@ -98,6 +98,9 @@ if __name__ == "__main__":
         output_loc = data_location / "figure_output"
     output_loc.mkdir(exist_ok=True)
 
+    prior_files = output_loc.glob("*.*")
+    prior_files = set(prior_files)
+    
     print(f"--------------Output will be written in {output_loc.resolve()}")
 
     ct = 0
@@ -225,3 +228,14 @@ if __name__ == "__main__":
     ww_logo.ax.set_xlim([- 18.5, -12.5])
     ww_logo.ax.set_ylim([0, 2])
     plt.savefig(output_loc / plot_filename)
+
+    if os.getenv("HOST_UID"):
+        try:
+            from minter.mint_utils import set_newfile_permissions
+
+            uid = os.getenv("HOST_UID")
+            set_newfile_permissions(output_loc, prior_files=prior_files, host_uid=os.getenv("HOST_UID"))
+        except (ImportError, ModuleNotFoundError):
+            pass
+        except Exception as e:
+            print("Unable to change permissions on output files; with luck, this does not make a difference")

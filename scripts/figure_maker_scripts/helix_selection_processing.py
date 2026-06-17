@@ -148,7 +148,8 @@ if __name__ == "__main__":
     else:
         output_loc = data_location / "figure_output"
     output_loc.mkdir(exist_ok=True)
-
+    prior_files = output_loc.glob("*.*")
+    prior_files = set(prior_files)
     ct = 0
     total = 0
     read_count_threshold = 1  # set this higher for really noisy data
@@ -296,3 +297,14 @@ if __name__ == "__main__":
             sorted_peptide_list.append(item[2])
 
     truncated_peptide_list = sorted_peptide_list[:number_of_peptides_to_plot]
+
+    if os.getenv("HOST_UID"):
+        try:
+            from minter.mint_utils import set_newfile_permissions
+
+            uid = os.getenv("HOST_UID")
+            set_newfile_permissions(output_loc, prior_files=prior_files, host_uid=os.getenv("HOST_UID"))
+        except (ImportError, ModuleNotFoundError):
+            pass
+        except Exception as e:
+            print("Unable to change permissions on output files; with luck, this does not make a difference")
