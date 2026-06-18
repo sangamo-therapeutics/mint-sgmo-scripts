@@ -166,7 +166,10 @@ This output can be used in step 3.
 
 #### usage (step 3): 
     $ python hairpin_pattern_sort_and_plot.py \
-      /path/to//figure_output/ExtD_FIGURE_2D_chr1_25477444L_GCCCCTTC_batch4_peptides_all_4res_patterns.txt
+      /path/to/figure_output/ExtD_FIGURE_2D_chr1_25477444L_GCCCCTTC_batch4_peptides_all_4res_patterns.txt
+
+Note importantly that the directory containing the input file must also contain the input file used in step 2. 
+
 
 ## Extended Data Figure 2F:
 
