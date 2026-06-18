@@ -32,7 +32,7 @@ services:
             - mint-net
         restart: unless-stopped
         volumes:
-            - $BOWTIE_INDEX_PATH:/seqdb/bowtie2
+            - $BOWTIE_INDEX_PATH:/seqdb/bowtie2:ro
             - $FASTQ_READ_PATH:/fastq_reads
             - $ALIGNMENT_OUTPUT_PATH:/aligned
             - $FIGURE_SCRIPTS_INPATH:/figure_data_in

@@ -68,11 +68,10 @@ RUN apt-get update \
 #    && ln -s /opt/bowtie2-${BOWTIE2_VERSION}-linux-x86_64/bowtie2-build /usr/local/bin
 
 ARG BRANCH
-
 RUN git clone --depth 1 https://github.com/sangamo-therapeutics/mint-sgmo-scripts.git /source_packages/mint-scripts  \
     --branch ${BRANCH}
 
-#RUN cd /source_packages/mint-scripts && pip install ./
+RUN cd /source_packages/mint-scripts && pip install ./
 
 RUN mkdir -p /seqdb/bowtie2 /fastq_reads/aligned /figure_files/input /figure_files/output
 
