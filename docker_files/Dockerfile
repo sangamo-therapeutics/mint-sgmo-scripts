@@ -12,8 +12,11 @@
 #  want to write output data to.
 #  If in a unix/linux environment, you will also want to determine your numerical UID
 #  to ensure that permissions of files created are correct.
-
-#  with the .env file in the same directory as the Dockerfile and docker-compose.yml
+#
+#  A sample file SAMPLE.env is included with the variables you will need to set
+#  Set the proper local variables and save as '.env' in the docker_files directory.
+#
+#  With the .env file in the same directory as the Dockerfile and docker-compose.yml
 #  issue the command:
 #
 #    $  docker compose build mint_environment
