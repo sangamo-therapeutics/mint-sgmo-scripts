@@ -71,9 +71,9 @@ if __name__ == "__main__":
     # local_dir = Path(__file__).parent / "input_text_files"
     # data_name = r"ExtD_FIGURE_2D_chr1_25477444L_GCCCCTTC_batch4_peptides_all_4res_patterns.txt"
     # data_filename = local_dir / data_name
-    assert Path(data_filename.exists())
-    print(f"---Data file is {data_filename}")
     data_file_path = Path(data_filename)
+    assert data_file_path.exists()
+    print(f"---Data file is {data_filename}")
     data_location = data_file_path.parent
 
     default_outloc = os.getenv("DEFAULT_FIGURE_OUT")

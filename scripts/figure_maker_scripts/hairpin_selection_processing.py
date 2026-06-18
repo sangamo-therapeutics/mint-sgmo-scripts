@@ -155,7 +155,9 @@ if __name__ == "__main__":
     if default_outloc:
         output_loc = Path(default_outloc)
     else:
-        output_loc = data_location / "figure_output"
+        # for this script, since the output will also be used in the next script
+        # it is useful to make sure they are in the same place
+        output_loc = data_location
     output_loc.mkdir(exist_ok=True)
     prior_files = output_loc.glob("*.*")
     prior_files = set(prior_files)
