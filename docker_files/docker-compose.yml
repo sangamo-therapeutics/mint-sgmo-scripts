@@ -1,0 +1,50 @@
+version: '1'
+
+services:
+    mint_environment:
+        build:
+            args:
+                BRANCH: $BRANCH
+                HOST_PLATFORM: HOST_PLATFORM
+#            secrets:
+#                - git_token
+            context: .
+            dockerfile: $DOCKER_FILE
+        deploy:
+            replicas: 1
+            resources:
+                limits:
+                    memory: $APP_MEM
+                    cpus: $CPUS
+                reservations:
+                    memory: $APP_MEM
+        memswap_limit: $APP_MEM
+#        entrypoint: bash
+        container_name: $CONTAINER_NAME
+        env_file: .env
+        environment:
+            - HOST_UID=${HOST_UID}
+            - HOST_GID=${HOST_GID}
+            - DEFAULT_FIGURE_IN=/figure_files
+            - DEFAULT_FIGURE_OUT=/figure_output
+        image: $DOCKER_IMAGE
+        networks:
+            - mint-net
+        restart: unless-stopped
+        volumes:
+            - $BOWTIE_INDEX_PATH:/seqdb/bowtie2
+            - $FASTQ_READ_PATH:/fastq_reads
+            - $ALIGNMENT_OUTPUT_PATH:/aligned
+            - $FIGURE_SCRIPTS_INPATH:/figure_data_in
+            - $FIGURE_SCRIPTS_OUTPATH:/figure_data_out
+            - ${LOG_MOUNT:-/data/null}:/logs
+            # LOG_MOUNT is to persist logs outside of container, optional
+            - ${GIT_DIR:-/data/null}:/git
+            # GIT_DIR is for debugging -- not to MAIN!!!
+networks:
+    mint-net:
+
+#volumes:
+#    vol_name:
+#        external: true
+#        name: ref_name
