@@ -70,15 +70,22 @@ RUN apt-get update \
 ARG BRANCH
 
 RUN git clone --depth 1 https://github.com/sangamo-therapeutics/mint-sgmo-scripts.git /source_packages/mint-scripts  \
-    --branch ${BRANCH} \
-RUN cd /source_packages/mint-scripts && pip install ./
+    --branch ${BRANCH}
+
+#RUN cd /source_packages/mint-scripts && pip install ./
 
 RUN mkdir -p /seqdb/bowtie2 /fastq_reads/aligned /figure_files/input /figure_files/output
 
 
+# these are standards *within* the container --
+# This allows the scripts to run with minimal changes in input
+# change the contents by
+# modifying the environment (through a .env) when lauching a container
 ENV DEFAULT_FIGURE_OUT="/figure_files/output" \
     DEFAULT_FIGURE_IN="/figure_files/input" \
-    PYTHONPATH='/source_pacakges/src/minter'
+    DEFAULT_PIPELINE_IN="/fastq_reads" \
+    DEFAULT_PIPELINE_OUT="/aligned"
+#    PYTHONPATH='/source_pacakges/src/minter'
 
 
 # # INSTALL THESE FROM pyproject.toml ??

@@ -230,16 +230,24 @@ if __name__ == "__main__":
         HOST_GID = int(os.getenv("HOST_GID"))
     except (TypeError, ValueError):
         HOST_GID = None
-
-    input_directory = Path("/fastq_reads")
+    input_dirname = os.getenv("DEFAULT_PIPELINE_IN", "/fastq_reads")
+    output_dirname = os.getenv("DEFAULT_PIPELINE_OUT", "/aligned")
+    input_dir = Path(input_dirname)
+    output_dir = Path(output_dirname)
 
     try:
-        assert input_directory.exists()
+        assert input_dir.exists()
     except AssertionError:
-        print(f"Directory {str(input_directory)} does not exist.")
+        print(f"Directory for input {str(input_dir)} does not exist.")
         raise
     print("Executing...")
-    output_dir = Path("aligned")
+    try:
+        assert output_dir.exists()
+    except AssertionError:
+        print(f"Directory for output {str(output_dir)} does not exist.")
+        raise
+    print("Executing...")
+
     index_path = BT_PATH
     try:
         print(f"INDEX_PATH = {index_path}")
@@ -253,7 +261,7 @@ if __name__ == "__main__":
     prior_pairfiles = paired_dir.glob("*.*")
     prior_pairfiles = set(prior_pairfiles)
 
-    pair_and_align(input_directory, output_directory=output_dir, index_path=index_path,
+    pair_and_align(input_dir, output_directory=output_dir, index_path=index_path,
                    index_name=BT_INDEX)  # using default output dir and index path and threads
 
     _set_newfile_permissions(paired_dir, prior_files=prior_pairfiles, host_uid=HOST_UID, host_gid=HOST_GID)
