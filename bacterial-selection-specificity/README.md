@@ -1,4 +1,4 @@
-# MINT scripts
+# MINT scripts: README for processing bacterial-selection-specificity analysis code
 This repository contains python scripts and configuration files to regenerate plots and analyses from Fauser et al. Nature Biotechnology 2026.
 
 The raw data files can be found in the NCBI Sequence Read Archive under BioProject accession number PRJNA1450726
