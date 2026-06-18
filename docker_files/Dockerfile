@@ -70,15 +70,23 @@ RUN apt-get update \
 ARG BRANCH
 
 RUN git clone --depth 1 https://github.com/sangamo-therapeutics/mint-sgmo-scripts.git /source_packages/mint-scripts  \
-    --branch ${BRANCH}
+    --branch ${BRANCH} \
+RUN cd /source_packages/mint-scripts && pip install ./
 
-RUN mkdir -p /seqdb/bowtie2 /fastq_reads/aligned
+RUN mkdir -p /seqdb/bowtie2 /fastq_reads/aligned /figure_files/input /figure_files/output
 
-RUN pip install pandas matplotlib logomaker
-RUN pip install cutadapt python-levenshtein
-RUN pip install pybedtools
-RUN pip install logomaker scipy==1.13.1
-RUN pip install biopython==1.85
+
+ENV DEFAULT_FIGURE_OUT="/figure_files/output" \
+    DEFAULT_FIGURE_IN="/figure_files/input" \
+    PYTHONPATH='/source_pacakges/src/minter'
+
+
+# # INSTALL THESE FROM pyproject.toml ??
+#RUN pip install pandas matplotlib logomaker
+#RUN pip install cutadapt python-levenshtein
+#RUN pip install pybedtools
+#RUN pip install logomaker scipy==1.13.1
+#RUN pip install biopython==1.85
 
 # sets local timezone
 ENV TZ="America/Los_Angeles"
