@@ -29,10 +29,7 @@ For genome-wide **integration** site nomination datasets that used a **single di
 For genome-wide **translocation** site nomination datasets that used 2 replicates and correspond to interrogating potential recombinations at the TRAC target site use `pipeline_genomic_TRAC_2_reps.sh`. Use it on data associated with Supplementary Tables 30-36.
 
 ## Docker container set-up
-The docker container set-up should be performed once and will allow the execution of all specificity scripts.
-
-Docker instructions:
-> -
+The docker container set-up should be performed once and will allow the execution of all specificity scripts. Refer to the Docker README before executing.
 
 ## Processing files
 1. Move read files associated with each experiment into their own directory as they will require different pipelines and called variables. Each script looks for R1 and R2.fastq.gz files in the directory it is run in and processes them all together.
@@ -48,6 +45,12 @@ Docker instructions:
    - Run `bash pipeline_nonpalindromic_nonmixed_2_reps.sh . CA` for all files associated with Supplementary Tables 10-13.
    - Run `bash pipeline_nonpalindromic_nonmixed_2_reps.sh . GT` for all files associated with Supplementary Tables 23-29.
    - Run `bash pipeline_genomic_TRAC_2_reps.sh .` for all files associated with Supplementary Tables 30-36.
-4. Final bed files are found in the bed_files_coord folder and should correspond to those in the Supplementary Tables, with additional columns of information. The first 3 columns constitute chr, start, end positions and the last two columns correspond to the average integration counts and the putative genomic attB sequences.
-
-
+4. Final bed files are found in the bed_files_coord folder and should correspond to those in the Supplementary Tables, with additional columns of information. The final output is for the putative 38 bp attB site with the dinucleotide centered and supporting signal information from the assay. The columns are: **chromosome**, **start**, **end**, samples with signal (replicate # and plus/minus primer reaction), strands of the samples with signal, original start locations of the samples with signal (usually corresponds to before or after dinucleotide), average start location of the samples with signal, integration counts of the samples with signal, **average integration counts of the signal**, and the **putative attB site sequence** corresponding to the signal. All merged data columns have information separated by "_" and are combined in the same order per column. Bolded column descriptions correspond to the data retained in the published Supplementary Tables.
+   - For example, this entry:
+   > chr1	22229736	22229774	r3\-plus\_r4\-minus\_r1\-minus\_r3\-plus	+\_\-\_\-\_\-	22229754\_22229756\_22229756\_22229756	22229755.5	3\_1\_1\_1	1.5	CCTCTCTTTCTAACTGAACTGTCAGTTACACAAGCTCA
+   - corresponds to a putative integration site with 1.5 average integration counts derived from:
+   > - 3 counts from replicate 3, plus reaction, positive strand
+   > - 1 count from replicate 4, minus reaction, negative strand
+   > - 1 count from replicate 1, minus reaction, negative strand
+   > - 1 count from replicate 3, plus reaction, negative strand
+   - This result is for an experiment with mixed dinucleotides, for an experiment with a single dinucleotide, the average denominator is the total number of possible samples in the experiment that can give a signal (i.e. 4 for 2 replicates each of plus and minus reactions).
