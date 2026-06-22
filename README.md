@@ -7,213 +7,55 @@ The raw data files can be found in the NCBI Sequence Read Archive under BioProje
 
 The motif plots use logomaker
 
-Scripts used to create figures shown in the manuscript are located in the directory:
+Scripts used to create figures shown in the manuscript are located in the directories:
 
-    scripts/figure_maker_scripts
+    mint-sgmo-scripts/figure_maker_scripts
+and
+    mint-sgmo-scripts/bacterial-selection-specificity
 
-These scripts require text inputs referencing a template sequence and referencing data file names. These text files are
-located in the directory:
+The scripts are provided with a Dockerfile that has instructions on creating a container with 
+the necessary applications for running the scripts.
 
-    scripts/figure_maker_scripts/text_inputs.
+#### BUILDING THE IMAGE:  ###########################################################################################
 
-## Figure 1F:
+  This file will automatically
+  pull the code for the mint-sgmo-scripts and place them in a container
+  with the necessary applications and environment to run the scripts. You
+  will need the container to exist in an environment with access to an hg38 genome
+  in fasta format or, preferrably, a bowtie2 index of the same genome.
 
-To reproduce the DNA specificity motif for the SATALKR helix in Figure 1F, you will need the following data files:
+  To build the image:
+  You must first configure the .env file for your local environment.  You will need to
+  determine where on your local machine you will store input data (fastq reads) and where you
+  want to write output data to.
+  If in a unix/linux environment, you will also want to determine your numerical UID
+  to ensure that permissions of files created are correct.
 
-* Figure_1F_SATALKR_rep1.fq
-* Figure_1F_SATALKR_rep2.fq
-* Figure_1F_SATALKR_rep3.fq
-* Figure_1F_SATALKR_rep4.fq
+  A sample file SAMPLE.env is included with the variables you will need to set
+  Set the proper local variables and save as '.env' in the docker_files directory.
 
-#### usage:
+  With the .env file in the same directory as the Dockerfile and docker-compose.yml
+  issue the command:
 
-    $  python Figure_1F_process_and_plot.py /path/to/oligo_NNN_library_3-6-2024.txt \
-            /path/to/Figure_1F_SATALKR_fq_files.txt \
-            /path/to/location/of/fq_files
+    $  docker compose build mint_environment
 
-The third argument is optional, but if not supplied, data files must be in the same directory as the
-Figure_1F_SATALKR_fq_files.txt. The output .pdf containing the figure will be written to a subdirectory "figure_output"
+  This may take a few minutes to construct the image but this only needs to be done once.
+  Once build, you can launch the image with the command.
+    $  docker compose run mint_environment
 
-## Extended Data Figure 2B:
+  If successful, your container should launch and you will see a prompt similar to
 
-To reproduce the Bxb1 helix selection results in Extended Data Figure 2B you will need the follwing data files:
+      root@3908bd0ca18a:/#
 
-* ExtD_FIGURE_2B_GAC_batch2.fq
-* ExtD_FIGURE_2B_GTC_batch1.fq
-* ExtD_FIGURE_2B_CAG_batch4b.fq
-* ExtD_FIGURE_2B_AGG_batch2.fq
-* ExtD_FIGURE_2B_AAT_batch4.fq
-* ExtD_FIGURE_2B_CTC_batch2.fq
-* ExtD_FIGURE_2B_CAA_batch1.fq
-* ExtD_FIGURE_2B_CAT_batch3.fq
-* ExtD_FIGURE_2B_CGC_batch4.fq
-* ExtD_FIGURE_2B_ACA_batch2.fq
+  This indicates you are successfully operating in the container. The .env file should have
+  mounted the external data in and data out locations for access within the container.
 
-Generating the plots is a two step process where:
 
-* the first step converts the raw sequence data into a sorted list of selected helix sequences
-* the second step identifies enriched 4 residue patterns and then generates a plot from the 100 selected helix sequences
-  that best match the enriched patterns
+  All scripts are located within the directories
 
-#### usage: 
+    /bacterial-selection-specificity
+  and
+    /genome-wide-specificity-analysis
 
-    $  python helix_selection_processing.py helix_library_template.txt ExtD_FIGURE_2B_AAT_batch4.fq
 
-The output file will be written in the subdirectory "figure_output" in the same directory as the fastq / fq file
-
-This output can be used in step 2.
-
-#### usage: 
-
-    $ python helix_pattern_finder_and_plot.py \ 
-        /path/to/figure_output/ExtD_FIGURE_2B_AAT_batch4_peptides_all.txt
-
-The output text and graph image will be written in the subdirectory "figure_output" in the same directory as input file
-
-
-## Extended Data Figure 2C:
-
-To reproduce the Bxb1 loop selection results in Extended Data Figure 2C you will need the follwing data files:
-
-* ExtD_FIGURE_2C_AC_batch1b.fq
-* ExtD_FIGURE_2C_AT_batch1b.fq
-* ExtD_FIGURE_2C_TC_batch1b.fq
-* ExtD_FIGURE_2C_TT_batch1b.fq
-
-Generating the plots is a three step process where:
-
-* the first step converts the raw sequence data into a sorted list of selected helix sequences
-* the second step identifies enriched 4 residue patterns and generates an overall plot
-* the third step breaks the patterns up into separate motifs and generates a plot for each motif
-
-The first step filters out likely sequence artifacts that are very similar to a much more frequent sequence read. This
-process can be very slow for files of this size so the results of this initial step are also provided so that the plots
-can be reproduced more quickly. The plot for AC represents motif1, the plot for AT represents all pattern matches, the
-plot for TC represents motif 2, and the plot for TT represents all pattern matches.
-
-#### usage (step 1): 
-
-    $  python loop_selection_process.py /path/to/loop_library_template.txt \
-            /path/to/location/of/fq_file/ExtD_FIGURE_2C_AC_batch1b.fq
-
-The output file will be written in the subdirectory "figure_output" in the same directory as the fastq / fq file
-
-for testing, an optional argument specifying a read limit can be added e.g.
-
-    $  python loop_selection_process.py /path/to/loop_library_template.txt \
-    /path/to/location/of/fq_file/ExtD_FIGURE_2C_AC_batch1b.fq 3000
-
-This will limit it to the number of reads specified. This is useful for debugging, but will not produce reliable data.
-
-This output can be used in step 2.
-
-#### usage (step 2): 
-
-    $ python loop_pattern_finder.py /path/to/figure_output/ExtD_FIGURE_2C_AC_batch1_peptides_all.txt
-
-This output will be used in step 3.
-
-#### usage (step 3): 
-
-    $  loop_pattern_sort_and_plot.py \
-        /path/to/figure_output/ExtD_FIGURE_2C_AC_batch1b_peptides_all_4res_patterns.txt
-
-## Extended Data Figure 2D:
-
-To reproduce the Bxb1 hairpin selection results in Extended Data Figure 2E you will need the follwing data files:
-
-* ExtD_FIGURE_2D_chr1_25477444L_GCCCCTTC_batch4.fq (GCCCCTTC)
-* ExtD_FIGURE_2D_chr19_48971022L_GGGATTCC_batch3.fq (GGGATTCC)
-* ExtD_FIGURE_2D_AAVS15032L_CTGAGCGC_batch3.fq (CTGAGCGC)
-* ExtD_FIGURE_2D_AAVS15032R_GGGTTTGA_batch3.fq (GGGTTTGA)
-* ExtD_FIGURE_2D_chr19_48971022R_TGCCTTCC_batch4.fq (TGCCTTCC)
-
-Generating the plots is a multistep process where:
-
-* the first step converts the raw sequence data into a sorted list of selected peptide sequences
-* the second step identifies enriched 4 residue motifs for each of G, A, R, and P fixed at position 322
-* the third step clusters the enriched patterns into separate motifs and generates a plot from the selected sequences
-  that best match each motif
-
-Note that some files contain multiple motifs and a separate plot is generated for each motif. In Extended Data Figure 2E
-the plot for GCCCCTTC represents motif3, the plot for TGCCTTCC represents motif4, and the other panels represent motif1
-from their respective sample
-
-#### usage (step 1):  
-    $  python hairpin_selection_processing.py \
-          /path/to/hairpin_library_template.txt \
-          /path/to/ExtD_FIGURE_2D_chr1_25477444L_GCCCCTTC_batch4.fq
-
-The output file will be written in the subdirectory "figure_output" in the same directory as the fastq / fq file
-
-
-for testing, an optional argument specifying a read limit can be added e.g.
-
-        $  python hairpin_selection_processing.py \
-          /path/to/hairpin_library_template.txt \
-          /path/to/ExtD_FIGURE_2D_chr1_25477444L_GCCCCTTC_batch4.fq 3000
-
-This will limit it to the number of reads specified. This is useful for debugging, but will not produce reliable data.
-
-
-This output can be used in step 2.
-
-#### usage (step 2): 
-    $  python hairpin_pattern_finder.py \
-        /path/to/figure_output/ExtD_FIGURE_2D_chr1_25477444L_GCCCCTTC_batch4_peptides_all.txt
-
-This output can be used in step 3.
-
-#### usage (step 3): 
-    $ python hairpin_pattern_sort_and_plot.py \
-      /path/to/figure_output/ExtD_FIGURE_2D_chr1_25477444L_GCCCCTTC_batch4_peptides_all_4res_patterns.txt
-
-Note importantly that the directory containing the input file must also contain the input file used in step 2. 
-
-
-## Extended Data Figure 2F:
-
-To reproduce the DNA specificity motif for the YRGSLP loop in Extended Data Figure 2F, you will need the following data
-files:
-
-* ExtD_FIGURE_2F_YRGSLP_rep1.fq
-* ExtD_FIGURE_2F_YRGSLP_rep2.fq
-* ExtD_FIGURE_2F_YRGSLP_rep3.fq
-* ExtD_FIGURE_2F_YRGSLP_rep4.fq
-
-#### usage:
-
-        $  python ExtD_Figure_2F_process_and_plot.py /path/to/oligo_NN_library_loop.txt \
-                    /path/to/ExtD_FIGURE_2F_YRGSLP_fq_files.txt \
-                    /path/to/location/of/fq_files
-
-The third argument is optional, but if not supplied, data files must be in the same directory as the
-ExtD_FIGURE_2F_YRGSLP_fq_files.txt. The output .pdf containing the figure will be written to a subdirectory "
-figure_output"
-
-## Extended Data Figure 2G:
-
-Note that panels 2F and 2G were reordered after the initial batch of sequence reads were uploaded to the SRA. To
-reproduce the DNA specificity motif for the FAGGG loop in Extended Data Figure 2F, you will need the following data
-files:
-
-* ExtD_FIGURE_2F_FAGGGRKHPRYR_techrep1_biorep1.fq
-* ExtD_FIGURE_2F_FAGGGRKHPRYR_techrep1_biorep2.fq
-* ExtD_FIGURE_2F_FAGGGRKHPRYR_techrep1_biorep3.fq
-* ExtD_FIGURE_2F_FAGGGRKHPRYR_techrep1_biorep4.fq
-* ExtD_FIGURE_2F_FAGGGRKHPRYR_techrep2_biorep1.fq
-* ExtD_FIGURE_2F_FAGGGRKHPRYR_techrep2_biorep2.fq
-* ExtD_FIGURE_2F_FAGGGRKHPRYR_techrep2_biorep3.fq
-* ExtD_FIGURE_2F_FAGGGRKHPRYR_techrep2_biorep4.fq
-
-The filenames listed in ExtD_FIGURE_2G_FAGGGRKHPRYR_fq_files.txt must match the names of the .fq files.
-
-#### usage:
-
-    $  python ExtD_Figure_2G_process_and_plot.py /path/to/oligo_NNNNNN_hairpin_library.txt \
-                /path/to/ExtD_FIGURE_2G_FAGGGRKHPRYR_fq_files.txt \
-                /path/to/location/of/fq_files
-
-The third argument is optional, but if not supplied, data files must be in the same directory as the
-ExtD_FIGURE_2F_YRGSLP_fq_files.txt. The output .pdf containing the figure will be written to a subdirectory "
-figure_output"
+  Please see the README within each for details on operating your scripts.

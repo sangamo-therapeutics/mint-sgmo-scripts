@@ -1,7 +1,7 @@
 ##########  BUILDING THE IMAGE:  ###########################################################################################
 #
 #  This file will automatically
-#  pull the codoe for the mint-sgmo-scripts and place them in a container
+#  pull the code for the mint-sgmo-scripts and place them in a container
 #  with the necessary applications and environment to run the scripts. You
 #  will need the container to exist in an environment with access to an hg38 genome
 #  in fasta format or, preferrably, a bowtie2 index of the same genome.
@@ -33,8 +33,14 @@
 #  mounted the external data in and data out locations for access within the container.
 #
 #
-#  All scripts are located within the directory /scripts
-#  Please see the README for details on operating your scripts.
+#  All scripts are located within the directories
+#
+#    /bacterial-selection-specificity
+#  and
+#    /genome-wide-specificity-analysis
+#
+#
+#  Please see the README within each for details on operating your scripts.
 
 FROM python:3.11-slim-bookworm
 USER root

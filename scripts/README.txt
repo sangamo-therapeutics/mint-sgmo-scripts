@@ -1,0 +1,1 @@
+Scripts in these directories represent branches used in manipulating MINT data after publication.
